@@ -70,7 +70,7 @@ def print_current_track_info():
     )
 
 
-def print_queue():
+def print_queue(sonos):
     queue = sonos.get_queue()
 
     ANSI_BOLD = '\033[1m'
@@ -82,14 +82,18 @@ def print_queue():
 
     current = int(sonos.get_current_track_info()['playlist_position'])
 
+    queue_length = len(queue)
+    padding = len(str(queue_length))
+
     for idx, track in enumerate(queue, 1):
         if (idx == current):
             color = ANSI_BOLD
         else:
             color = ANSI_RESET
 
+        idx = str(idx).rjust(padding)
         print(
-            "%s%d: %s - %s. From album %s." % (
+            "%s%s: %s - %s. From album %s." % (
                 color,
                 idx,
                 track['artist'],
@@ -141,7 +145,7 @@ def main():
         elif (cmd == 'current'):
             print_current_track_info()
         elif (cmd == 'queue'):
-            print_queue()
+            print_queue(sonos)
         elif (cmd == 'volume'):
             if (len(sys.argv) > 3):
                 operator = sys.argv[3].lower()
