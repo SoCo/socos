@@ -92,7 +92,7 @@ def print_queue():
         colorama.deinit()
 
 
-if __name__ == '__main__':
+def main():
     if (len(sys.argv) > 4 or len(sys.argv) < 3):
         print("Usage: sonoshell.py [speaker's IP|all] [cmd]")
         print("")
@@ -139,3 +139,7 @@ if __name__ == '__main__':
                 print(sonos.volume)
         else:
             print("Valid commands (with IP): info, play, pause, stop, next, previous, current, volume and partymode")
+
+
+if __name__ == '__main__':
+    main()
