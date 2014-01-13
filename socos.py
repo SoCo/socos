@@ -106,6 +106,7 @@ def print_queue(sonos):
     if colorama:
         colorama.deinit()
 
+
 def play_index(sonos, index):
     queue_length = len(sonos.get_queue())
     try:
