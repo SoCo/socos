@@ -148,9 +148,9 @@ def main():
                 print("%s: %s" % (item, all_info[item]))
         elif (cmd == 'play'):
             if len(sys.argv) > 3:
-                print(play_index(sonos, sys.argv[3]))
+                play_index(sonos, sys.argv[3])
             else:
-                print(sonos.play())
+                sonos.play()
         elif (cmd == 'pause'):
             print(sonos.pause())
         elif (cmd == 'stop'):
