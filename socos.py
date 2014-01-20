@@ -149,10 +149,9 @@ def main():
         elif (cmd == 'play'):
             if len(sys.argv) > 3:
                 play_index(sonos, sys.argv[3])
-                print_current_track_info(sonos)
             else:
                 sonos.play()
-                print_current_track_info(sonos)
+            print_current_track_info(sonos)
         elif (cmd == 'pause'):
             print(sonos.pause())
         elif (cmd == 'stop'):
