@@ -107,6 +107,20 @@ def print_queue(sonos):
         colorama.deinit()
 
 
+def play_index(sonos, index):
+    queue_length = len(sonos.get_queue())
+    try:
+        index = int(index) - 1
+        if index >= 0 and index < queue_length:
+            current = int(sonos.get_current_track_info()['playlist_position']) - 1
+            if (index != current):
+                return sonos.play_from_queue(index)
+        else:
+            raise ValueError()
+    except ValueError():
+        return "Index has to be a integer within the range 1 - %d" % queue_length
+
+
 def main():
     if (len(sys.argv) > 4 or len(sys.argv) < 3):
         print("Usage: sonoshell.py [speaker's IP|all] [cmd]")
@@ -133,7 +147,11 @@ def main():
             for item in all_info:
                 print("%s: %s" % (item, all_info[item]))
         elif (cmd == 'play'):
-            print(sonos.play())
+            if len(sys.argv) > 3:
+                play_index(sonos, sys.argv[3])
+            else:
+                sonos.play()
+            print_current_track_info(sonos)
         elif (cmd == 'pause'):
             print(sonos.pause())
         elif (cmd == 'stop'):
