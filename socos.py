@@ -170,8 +170,10 @@ def main():
                 adjust_volume(sonos, operator)
             else:
                 print(sonos.volume)
+        elif (cmd == 'state'):
+            print(sonos.get_current_transport_info()['current_transport_state'])
         else:
-            print("Valid commands (with IP): info, play, pause, stop, next, previous, current, volume and partymode")
+            print("Valid commands (with IP): info, state, play, pause, stop, next, previous, current, volume and partymode")
 
 
 if __name__ == '__main__':
