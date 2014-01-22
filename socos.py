@@ -125,7 +125,7 @@ def main():
     if (len(sys.argv) > 4 or len(sys.argv) < 3):
         print("Usage: sonoshell.py [speaker's IP|all] [cmd]")
         print("")
-        print("Valid commands (with IP): info, play, pause, stop, next, previous, current, queue, volume and partymode")
+        print("Valid commands (with IP): info, state, play, pause, stop, next, previous, current, queue, volume and partymode")
         print("Valid commands (with 'all'): list_ips")
         sys.exit()
 
