@@ -157,9 +157,11 @@ def main():
         elif (cmd == 'stop'):
             print(sonos.stop())
         elif (cmd == 'next'):
-            print(sonos.next())
+            sonos.next()
+            print_current_track_info(sonos)
         elif (cmd == 'previous'):
-            print(sonos.previous())
+            sonos.previous()
+            print_current_track_info(sonos)
         elif (cmd == 'current'):
             print_current_track_info(sonos)
         elif (cmd == 'queue'):
