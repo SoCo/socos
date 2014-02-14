@@ -125,7 +125,7 @@ def main():
     if (len(sys.argv) > 4 or len(sys.argv) < 3):
         print("Usage: sonoshell.py [speaker's IP|all] [cmd]")
         print("")
-        print("Valid commands (with IP): info, play, pause, stop, next, previous, current, queue, volume and partymode")
+        print("Valid commands (with IP): info, state, play, pause, stop, next, previous, current, queue, volume and partymode")
         print("Valid commands (with 'all'): list_ips")
         sys.exit()
 
@@ -172,8 +172,10 @@ def main():
                 adjust_volume(sonos, operator)
             else:
                 print(sonos.volume)
+        elif (cmd == 'state'):
+            print(sonos.get_current_transport_info()['current_transport_state'])
         else:
-            print("Valid commands (with IP): info, play, pause, stop, next, previous, current, volume and partymode")
+            print("Valid commands (with IP): info, state, play, pause, stop, next, previous, current, volume and partymode")
 
 
 if __name__ == '__main__':
