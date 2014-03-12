@@ -112,7 +112,7 @@ def shell():
 
     if readline is not None:
         readline.parse_and_bind('tab: complete')
-        #readline.set_completer(self._tab_completion)
+        readline.set_completer(complete_command)
         readline.set_completer_delims(' ')
 
     while True:
@@ -145,6 +145,16 @@ def shell():
             err('Keyboard interrupt.')
         except EOFError:
             err('EOF.')
+
+
+def complete_command(text, context):
+    """ auto-complete commands
+
+    text is the text to be auto-completed
+    context is an index, increased for every call for "text" to get next match
+    """
+    matches = list(filter(lambda k: k.startswith(text), COMMANDS.keys()))
+    return matches[context]
 
 
 def adjust_volume(sonos, operator):
