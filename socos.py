@@ -119,7 +119,7 @@ def shell():
         try:
             if CUR_SPEAKER:
                 line = input('socos({speaker})> '.format(
-                    speaker=CUR_SPEAKER.player_name))
+                    speaker=CUR_SPEAKER.player_name).encode('utf-8'))
             else:
                 line = input('socos> ')
         except EOFError:
