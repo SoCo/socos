@@ -274,8 +274,9 @@ def exit():
     sys.exit(0)
 
 
-def play(sonos, idx):
+def play(sonos, *args):
     if args:
+        idx = args[0]
         play_index(sonos, idx)
     else:
         sonos.play()
