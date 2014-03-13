@@ -263,11 +263,11 @@ def speaker_info(sonos):
 
 
 def volume(sonos, *args):
-    if (len(args) > 2):
-        operator = args[2].lower()
+    if args:
+        operator = args[0].lower()
         adjust_volume(sonos, operator)
-    else:
-        return sonos.volume
+
+    return sonos.volume
 
 
 def exit():
