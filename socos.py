@@ -56,7 +56,7 @@ def process_cmd(name, args):
 
     if cmd not in COMMANDS:
         err('Unknown command "{cmd}"'.format(cmd=cmd))
-        err('Valid commands: {cmds}'.format(cmds=', '.join(COMMANDS.keys())))
+        err(get_help())
         return False
 
     req_ip, func = COMMANDS[cmd]
@@ -192,6 +192,7 @@ def get_volume_adjustment_factor(operator):
 
 
 def get_current_track_info(sonos):
+    """ Show the current track """
     track = sonos.get_current_track_info()
     return (
         "Current track: %s - %s. From album %s. This is track number"
@@ -206,6 +207,7 @@ def get_current_track_info(sonos):
 
 
 def get_queue(sonos):
+    """ Show the current queue """
     queue = sonos.get_queue()
 
     ANSI_BOLD = '\033[1m'
@@ -239,6 +241,7 @@ def err(s):
 
 
 def play_index(sonos, index):
+    """ Play an item from the playlist """
     queue_length = len(sonos.get_queue())
     try:
         index = int(index) - 1
@@ -253,16 +256,19 @@ def play_index(sonos, index):
 
 
 def list_ips():
+    """ List available devices """
     sonos = soco.SonosDiscovery()
     return sonos.get_speaker_ips()
 
 
 def speaker_info(sonos):
+    """ Information about a speaker """
     infos = sonos.get_speaker_info()
     return ('%s: %s' % (i, infos[i]) for i in infos)
 
 
 def volume(sonos, *args):
+    """ Change or show the volume of a device """
     if args:
         operator = args[0].lower()
         adjust_volume(sonos, operator)
@@ -271,10 +277,12 @@ def volume(sonos, *args):
 
 
 def exit():
+    """ Exit socos """
     sys.exit(0)
 
 
 def play(sonos, *args):
+    """ Start playing """
     if args:
         idx = args[0]
         play_index(sonos, idx)
@@ -284,16 +292,19 @@ def play(sonos, *args):
 
 
 def play_next(sonos):
+    """ Play the next track """
     sonos.next()
     return get_current_track_info(sonos)
 
 
 def play_previous(sonos):
+    """ Play the previous track """
     sonos.previous()
     return get_current_track_info(sonos)
 
 
 def state(sonos):
+    """ Get the current state of a device / group """
     return sonos.get_current_transport_info()['current_transport_state']
 
 
@@ -307,6 +318,23 @@ def unset_speaker():
     """ resets the current speaker for the shell session """
     global CUR_SPEAKER
     CUR_SPEAKER = None
+
+
+def get_help():
+    """ Prints a list of commands with short description """
+
+    def _cmd_summary(item):
+        """ Format command name and first line of docstring """
+        name, func = item[0], item[1][1]
+        if isinstance(func, str):
+            func = getattr(soco.SoCo, func)
+        doc = getattr(func, '__doc__') or ''
+        doc = doc.split('\n')[0]
+        return ' * {cmd:10s} {doc}'.format(cmd=name, doc=doc)
+
+    texts = ['Available commands:']
+    texts += map(_cmd_summary, COMMANDS.items())
+    return '\n'.join(texts)
 
 
 # COMMANDS indexes commands by their name. Each command is a 2-tuple of
@@ -330,6 +358,7 @@ COMMANDS = {
     'exit':       (False, exit),
     'set':        (False, set_speaker),
     'unset':      (False, unset_speaker),
+    'help':       (False, get_help),
 }
 
 
