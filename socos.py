@@ -35,6 +35,8 @@ import soco
 
 # current speaker (used only in interactive mode)
 CUR_SPEAKER = None
+# known speakers (used only in interactive mode)
+KNOWN_SPEAKERS = {}
 
 
 def main():
@@ -258,7 +260,13 @@ def play_index(sonos, index):
 def list_ips():
     """ List available devices """
     sonos = soco.SonosDiscovery()
-    return sonos.get_speaker_ips()
+    KNOWN_SPEAKERS.clear()
+    ips = sonos.get_speaker_ips()
+    ips.sort()
+    for zone_number, ip in enumerate(ips, 1):
+        name = soco.SoCo(ip).player_name.encode('utf-8')
+        KNOWN_SPEAKERS[str(zone_number)] = ip
+        yield '({}) {: <15} {}'.format(zone_number, ip, name)
 
 
 def speaker_info(sonos):
@@ -308,10 +316,23 @@ def state(sonos):
     return sonos.get_current_transport_info()['current_transport_state']
 
 
-def set_speaker(ip):
-    """ set the current speaker for the shell session """
+def set_speaker(arg):
+    """ Set the current speaker for the shell session by ip or speaker number
+
+    Parameters:
+    arg    is either an ip or the number of a speaker as shown by list
+    """
+    # Update the list of known speakers if that has not already been done
+    if not KNOWN_SPEAKERS:
+        list(list_ips())
+
     global CUR_SPEAKER
-    CUR_SPEAKER = soco.SoCo(ip)
+    # Set speaker by speaker number as identified by list_ips ...
+    if '.' not in arg and arg in KNOWN_SPEAKERS:
+        CUR_SPEAKER = soco.SoCo(KNOWN_SPEAKERS[arg])
+    # ... and if not that, then by ip
+    else:
+        CUR_SPEAKER = soco.SoCo(arg)
 
 
 def unset_speaker():
