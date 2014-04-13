@@ -120,8 +120,10 @@ def shell():
     while True:
         try:
             if CUR_SPEAKER:
-                line = input('socos({speaker})> '.format(
-                    speaker=CUR_SPEAKER.player_name).encode('utf-8'))
+                speaker = CUR_SPEAKER.player_name
+                if hasattr(speaker, 'decode'):
+                    speaker = speaker.encode('utf-8')
+                line = input('socos({speaker})> '.format(speaker=speaker))
             else:
                 line = input('socos> ')
         except EOFError:
@@ -264,7 +266,9 @@ def list_ips():
     ips = sonos.get_speaker_ips()
     ips.sort()
     for zone_number, ip in enumerate(ips, 1):
-        name = soco.SoCo(ip).player_name.encode('utf-8')
+        name = soco.SoCo(ip).player_name
+        if hasattr(name, 'decode'):
+            name = name.encode('utf-8')
         KNOWN_SPEAKERS[str(zone_number)] = ip
         yield '({}) {: <15} {}'.format(zone_number, ip, name)
 
