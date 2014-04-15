@@ -65,7 +65,7 @@ def process_cmd(name, args):
     if req_ip:
         if not CUR_SPEAKER:
             if not args:
-                err('Please specify a speker IP for "{cmd}".'.format(cmd=cmd))
+                err('Please specify a speaker IP for "{cmd}".'.format(cmd=cmd))
                 return
             else:
                 speaker_spec = args.pop(0)
