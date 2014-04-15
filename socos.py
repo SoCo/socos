@@ -333,13 +333,19 @@ def play(sonos, *args):
 
 def play_next(sonos):
     """ Play the next track """
-    sonos.next()
+    try:
+        sonos.next()
+    except soco.exceptions.SoCoUPnPException, err:
+        return "No such track in playlist"
     return get_current_track_info(sonos)
 
 
 def play_previous(sonos):
     """ Play the previous track """
-    sonos.previous()
+    try:
+        sonos.previous()
+    except soco.exceptions.SoCoUPnPException, err:
+        return "No such track in playlist"
     return get_current_track_info(sonos)
 
 
