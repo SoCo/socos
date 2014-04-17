@@ -38,18 +38,17 @@ CUR_SPEAKER = None
 
 
 def main():
-    name = sys.argv[0]
     args = sys.argv[1:]
 
     if args:
         # process command and exit
-        process_cmd(name, args)
+        process_cmd(args)
     else:
         # start interactive shell
         shell()
 
 
-def process_cmd(name, args):
+def process_cmd(args):
     """ Processes a single command """
 
     cmd = args.pop(0).lower()
@@ -140,7 +139,7 @@ def shell():
             continue
 
         try:
-            process_cmd('', args)
+            process_cmd(args)
         except KeyboardInterrupt:
             err('Keyboard interrupt.')
         except EOFError:
