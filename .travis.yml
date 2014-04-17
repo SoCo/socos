@@ -9,5 +9,5 @@ install:
   - pip install -r requirements-dev.txt --use-mirrors
 
 script:
-  - "flake8 *.py
+  - "flake8 *.py"
   - "pylint *.py"
