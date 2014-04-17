@@ -164,12 +164,12 @@ def adjust_volume(sonos, operator):
 
     volume = sonos.volume
 
-    if (operator[0] == '+'):
+    if operator[0] == '+':
         if (volume + factor) > 100:
             factor = 1
         sonos.volume = (volume + factor)
         return sonos.volume
-    elif (operator[0] == '-'):
+    elif operator[0] == '-':
         if (volume - factor) < 0:
             factor = 1
         sonos.volume = (volume - factor)
@@ -218,7 +218,7 @@ def get_queue(sonos):
     padding = len(str(queue_length))
 
     for idx, track in enumerate(queue, 1):
-        if (idx == current):
+        if idx == current:
             color = ANSI_BOLD
         else:
             color = ANSI_RESET
@@ -247,7 +247,7 @@ def play_index(sonos, index):
         if index >= 0 and index < queue_length:
             position = sonos.get_current_track_info()['playlist_position']
             current = int(position) - 1
-            if (index != current):
+            if index != current:
                 return sonos.play_from_queue(index)
         else:
             raise ValueError()
