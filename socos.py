@@ -246,13 +246,15 @@ def play_index(sonos, index):
     try:
         index = int(index) - 1
         if index >= 0 and index < queue_length:
-            current = int(sonos.get_current_track_info()['playlist_position']) - 1
+            position = sonos.get_current_track_info()['playlist_position']
+            current = int(position) - 1
             if (index != current):
                 return sonos.play_from_queue(index)
         else:
             raise ValueError()
     except ValueError():
-        return "Index has to be a integer within the range 1 - %d" % queue_length
+        return "Index has to be a integer within \
+                the range 1 - %d" % queue_length
 
 
 def list_ips():

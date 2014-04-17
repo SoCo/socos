@@ -54,5 +54,4 @@ setup(name=PACKAGE,
               'socos = socos:main',
           ]
       },
-      **OPTIONS
-)
+      **OPTIONS)
