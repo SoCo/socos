@@ -17,12 +17,12 @@ import shlex
 
 try:
     import colorama
-except:
+except ImportError:
     colorama = False
 
 try:
     import readline
-except:
+except ImportError:
     readline = None
 
 try:
