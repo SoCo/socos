@@ -5,9 +5,9 @@ python:
   - "3.3"
 
 install:
-  - pip install -r requirements.txt --use-mirrors
-  - pip install -r requirements-dev.txt --use-mirrors
-  - pip install colorama --use-mirrors
+  - pip install -r requirements.txt
+  - pip install -r requirements-dev.txt
+  - pip install colorama
 
 script:
   - "flake8 *.py"
