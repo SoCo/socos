@@ -235,8 +235,8 @@ def get_queue(sonos):
         )
 
 
-def err(s):
-    print(s, file=sys.stderr)
+def err(message):
+    print(message, file=sys.stderr)
 
 
 def play_index(sonos, index):
@@ -309,10 +309,10 @@ def state(sonos):
     return sonos.get_current_transport_info()['current_transport_state']
 
 
-def set_speaker(ip):
+def set_speaker(ip_address):
     """ set the current speaker for the shell session """
     global CUR_SPEAKER
-    CUR_SPEAKER = soco.SoCo(ip)
+    CUR_SPEAKER = soco.SoCo(ip_address)
 
 
 def unset_speaker():
