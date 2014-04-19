@@ -18,14 +18,17 @@ import shlex
 try:
     import colorama
 except ImportError:
-    colorama = False
+    # pylint: disable=invalid-name
+    colorama = None
 
 try:
     import readline
 except ImportError:
+    # pylint: disable=invalid-name
     readline = None
 
 try:
+    # pylint: disable=redefined-builtin,invalid-name
     input = raw_input
 except NameError:
     # raw_input has been renamed to input in Python 3
@@ -116,6 +119,8 @@ def shell():
 
     while True:
         try:
+            # Not sure why this is necessary, as there is a player_name attr
+            # pylint: disable=no-member
             if CUR_SPEAKER:
                 line = input('socos({speaker}|{state})> '.format(
                     speaker=CUR_SPEAKER.player_name, state=state(CUR_SPEAKER).title()).encode('utf-8'))
@@ -209,6 +214,7 @@ def get_queue(sonos):
     """ Show the current queue """
     queue = sonos.get_queue()
 
+    # pylint: disable=invalid-name
     ANSI_BOLD = '\033[1m'
     ANSI_RESET = '\033[0m'
 
@@ -311,13 +317,14 @@ def state(sonos):
 
 def set_speaker(ip_address):
     """ set the current speaker for the shell session """
-    global CUR_SPEAKER
+    # TODO: this should be refactored into a class with instance-wide state
+    global CUR_SPEAKER  # pylint: disable=global-statement
     CUR_SPEAKER = soco.SoCo(ip_address)
 
 
 def unset_speaker():
     """ resets the current speaker for the shell session """
-    global CUR_SPEAKER
+    global CUR_SPEAKER  # pylint: disable=global-statement
     CUR_SPEAKER = None
 
 
@@ -333,6 +340,7 @@ def get_help():
         doc = doc.split('\n')[0]
         return ' * {cmd:10s} {doc}'.format(cmd=name, doc=doc)
 
+    # pylint: disable=bad-builtin
     texts = ['Available commands:']
     texts += map(_cmd_summary, COMMANDS.items())
     return '\n'.join(texts)
