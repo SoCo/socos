@@ -183,17 +183,17 @@ def adjust_volume(sonos, operator):
     if not factor:
         return False
 
-    volume = sonos.volume
+    vol = sonos.volume
 
     if operator[0] == '+':
-        if (volume + factor) > 100:
+        if (vol + factor) > 100:
             factor = 1
-        sonos.volume = (volume + factor)
+        sonos.volume = (vol + factor)
         return sonos.volume
     elif operator[0] == '-':
-        if (volume - factor) < 0:
+        if (vol - factor) < 0:
             factor = 1
-        sonos.volume = (volume - factor)
+        sonos.volume = (vol - factor)
         return sonos.volume
     else:
         err("Valid operators for volume are + and -")
