@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
+""" socos is a commandline tool for controlling Sonos speakers """
+
 from __future__ import print_function
 
-
-""" socos is a commandline tool for controlling Sonos speakers """
 
 # Will be parsed by setup.py to determine package metadata
 __author__ = 'SoCo team <python-soco @googlegroups.com>'
