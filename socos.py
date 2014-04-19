@@ -28,7 +28,7 @@ except ImportError:
     readline = None
 
 try:
-    # pylint: disable=redefined-builtin,invalid-name
+    # pylint: disable=redefined-builtin,invalid-name,undefined-variable
     input = raw_input
 except NameError:
     # raw_input has been renamed to input in Python 3
