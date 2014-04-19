@@ -62,33 +62,13 @@ def process_cmd(args):
         err(get_help())
         return False
 
-    req_ip, func = COMMANDS[cmd]
+    func, args = _check_args(cmd, args)
 
-    # check if we operate on a spectifc speaker / group
-    if req_ip:
-        if not CUR_SPEAKER:
-            if not args:
-                err('Please specify a speaker IP for "{cmd}".'.format(cmd=cmd))
-                return
-            else:
-                speaker_spec = args.pop(0)
-                sonos = soco.SoCo(speaker_spec)
-                args.insert(0, sonos)
-        else:
-            args.insert(0, CUR_SPEAKER)
-
-    # determine how to call function
-    if isinstance(func, str):
-        sonos = args.pop(0)
-        method = getattr(sonos, func)
-        result = method(*args)
-
-    else:
-        try:
-            result = func(*args)
-        except TypeError as ex:
-            err(ex)
-            return
+    try:
+        result = _call_func(func, args)
+    except TypeError as ex:
+        err(ex)
+        return
 
     # colorama.init() takes over stdout/stderr to give cross-platform colors
     if colorama:
@@ -108,6 +88,41 @@ def process_cmd(args):
     # Release stdout/stderr from colorama
     if colorama:
         colorama.deinit()
+
+
+def _call_func(func, args):
+    """ handles str-based functions and calls appropriately """
+
+    # determine how to call function
+    if isinstance(func, str):
+        sonos = args.pop(0)
+        method = getattr(sonos, func)
+        return method(*args)  # pylint: disable=star-args
+
+    else:
+        return func(*args)  # pylint: disable=star-args
+
+
+def _check_args(cmd, args):
+    """ checks if func is called for a speaker and updates 'args' """
+
+    req_ip, func = COMMANDS[cmd]
+
+    if not req_ip:
+        return func, args
+
+    if not CUR_SPEAKER:
+        if not args:
+            err('Please specify a speaker IP for "{cmd}".'.format(cmd=cmd))
+            return None, None
+        else:
+            speaker_spec = args.pop(0)
+            sonos = soco.SoCo(speaker_spec)
+            args.insert(0, sonos)
+    else:
+        args.insert(0, CUR_SPEAKER)
+
+    return func, args
 
 
 def shell():
