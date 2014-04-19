@@ -334,8 +334,9 @@ def state(sonos):
 
 def set_speaker(ip_address):
     """ set the current speaker for the shell session """
+    # pylint: disable=global-statement,fixme
     # TODO: this should be refactored into a class with instance-wide state
-    global CUR_SPEAKER  # pylint: disable=global-statement
+    global CUR_SPEAKER
     CUR_SPEAKER = soco.SoCo(ip_address)
 
 
