@@ -118,8 +118,8 @@ def shell():
     while True:
         try:
             if CUR_SPEAKER:
-                line = input('socos({speaker})> '.format(
-                    speaker=CUR_SPEAKER.player_name).encode('utf-8'))
+                line = input('socos({speaker}|{state})> '.format(
+                    speaker=CUR_SPEAKER.player_name, state=state(CUR_SPEAKER).title()).encode('utf-8'))
             else:
                 line = input('socos> ')
         except EOFError:
