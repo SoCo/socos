@@ -300,7 +300,7 @@ def volume(sonos, *args):
     return sonos.volume
 
 
-def exit():
+def exit_shell():
     """ Exit socos """
     sys.exit(0)
 
@@ -381,7 +381,7 @@ COMMANDS = {
     'queue':      (True, get_queue),
     'volume':     (True, volume),
     'state':      (True, state),
-    'exit':       (False, exit),
+    'exit':       (False, exit_shell),
     'set':        (False, set_speaker),
     'unset':      (False, unset_speaker),
     'help':       (False, get_help),
