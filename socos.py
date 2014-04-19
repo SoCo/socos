@@ -41,6 +41,7 @@ CUR_SPEAKER = None
 
 
 def main():
+    """ main switches between (non-)interactive mode """
     args = sys.argv[1:]
 
     if args:
@@ -242,6 +243,7 @@ def get_queue(sonos):
 
 
 def err(message):
+    """ print an error message """
     print(message, file=sys.stderr)
 
 
