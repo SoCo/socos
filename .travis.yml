@@ -10,5 +10,4 @@ install:
   - pip install colorama
 
 script:
-  - "flake8 *.py"
-  - "pylint *.py"
+  - make lint
