@@ -173,7 +173,7 @@ def complete_command(text, context):
     text is the text to be auto-completed
     context is an index, increased for every call for "text" to get next match
     """
-    matches = list(filter(lambda k: k.startswith(text), COMMANDS.keys()))
+    matches = [cmd for cmd in COMMANDS.keys() if cmd.startswith(text)]
     return matches[context]
 
 
