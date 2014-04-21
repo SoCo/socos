@@ -1,0 +1,2 @@
+class SoCoIllegalSeekException(Exception):
+    pass

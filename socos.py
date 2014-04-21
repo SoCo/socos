@@ -36,6 +36,9 @@ except NameError:
     pass
 
 import soco
+from soco.exceptions import SoCoUPnPException
+
+from socos import SoCoIllegalSeekException
 
 # current speaker (used only in interactive mode)
 CUR_SPEAKER = None
@@ -69,7 +72,7 @@ def process_cmd(args):
 
     try:
         result = _call_func(func, args)
-    except TypeError as ex:
+    except (TypeError, SoCoIllegalSeekException) as ex:
         err(ex)
         return
 
@@ -335,8 +338,8 @@ def play_next(sonos):
     """ Play the next track """
     try:
         sonos.next()
-    except soco.exceptions.SoCoUPnPException, err:
-        return "No such track in playlist"
+    except SoCoUPnPException as ex:
+        raise SoCoIllegalSeekException('No such track') from ex
     return get_current_track_info(sonos)
 
 
@@ -344,8 +347,8 @@ def play_previous(sonos):
     """ Play the previous track """
     try:
         sonos.previous()
-    except soco.exceptions.SoCoUPnPException, err:
-        return "No such track in playlist"
+    except SoCoUPnPException as ex:
+        raise SoCoIllegalSeekException('No suck track') from ex
     return get_current_track_info(sonos)
 
 
