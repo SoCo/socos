@@ -264,7 +264,7 @@ def play_index(sonos, index):
                 return sonos.play_from_queue(index)
         else:
             raise ValueError()
-    except ValueError():
+    except ValueError:
         return "Index has to be a integer within \
                 the range 1 - %d" % queue_length
 
