@@ -312,6 +312,12 @@ def play(sonos, *args):
         sonos.play()
     return get_current_track_info(sonos)
 
+def remove_from_queue(sonos, *args):
+    """ Remove track from queue by index """
+    if args:
+        idx = args[0]
+        sonos.remove_from_queue(idx)
+    return get_queue(sonos)
 
 def play_next(sonos):
     """ Play the next track """
@@ -397,6 +403,7 @@ COMMANDS = {
     'previous':   (True, play_previous),
     'current':    (True, get_current_track_info),
     'queue':      (True, get_queue),
+    'remove':     (True, remove_from_queue),
     'volume':     (True, volume),
     'state':      (True, state),
     'exit':       (False, exit_shell),
