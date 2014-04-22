@@ -16,6 +16,7 @@ import sys
 import shlex
 
 try:
+    # pylint: disable=import-error
     import colorama
 except ImportError:
     # pylint: disable=invalid-name
