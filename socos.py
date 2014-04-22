@@ -140,7 +140,8 @@ def shell():
             # pylint: disable=no-member
             if CUR_SPEAKER:
                 line = input('socos({speaker}|{state})> '.format(
-                    speaker=CUR_SPEAKER.player_name, state=state(CUR_SPEAKER).title()).encode('utf-8'))
+                    speaker=CUR_SPEAKER.player_name,
+                    state=state(CUR_SPEAKER).title()).encode('utf-8'))
             else:
                 line = input('socos> ')
         except EOFError:
