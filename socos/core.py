@@ -258,7 +258,7 @@ def play_index(sonos, index):
     index = int(index) - 1
     if index >= 0 and index < queue_length:
         current = int(sonos.get_current_track_info()['playlist_position']) - 1
-        if (index != current):
+        if index != current:
             return sonos.play_from_queue(index)
     else:
         raise ValueError("Index has to be a integer within \
