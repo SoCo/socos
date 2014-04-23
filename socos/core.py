@@ -324,8 +324,9 @@ def play(sonos, *args):
 def remove_from_queue(sonos, *args):
     """ Remove track from queue by index """
     if args:
-        idx = args[0]
-        sonos.remove_from_queue(idx)
+        index = int(args[0])
+        if is_index_in_queue(sonos, index):
+            sonos.remove_from_queue(index)
     return get_queue(sonos)
 
 
