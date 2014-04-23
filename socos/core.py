@@ -5,6 +5,7 @@ from __future__ import print_function
 
 import sys
 import shlex
+import re
 
 try:
     # pylint: disable=import-error
@@ -328,9 +329,22 @@ def play(sonos, *args):
 def remove_from_queue(sonos, *args):
     """ Remove track from queue by index """
     if args:
-        index = int(args[0])
-        remove_index_from_queue(sonos, index)
+        pattern = re.compile(r'(\d+)..(\d+)')
+        matches = pattern.search(args[0])
+        if matches:
+            remove_range_from_queue(sonos, matches.group(1), matches.group(2))
+        else:
+            index = int(args[0])
+            remove_index_from_queue(sonos, index)
     return get_queue(sonos)
+
+
+def remove_range_from_queue(sonos, start, stop):
+    """ Remove a range of tracks from queue """
+    start = int(start)
+    stop = int(stop) + 1
+    for index in reversed(range(start, stop)):
+        remove_index_from_queue(sonos, index)
 
 
 def remove_index_from_queue(sonos, index):
