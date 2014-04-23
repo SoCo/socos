@@ -252,17 +252,25 @@ def err(message):
     print(message, file=sys.stderr)
 
 
-def play_index(sonos, index):
-    """ Play an item from the playlist """
+def is_index_in_queue(sonos, index):
+    """ Helper function to verify if index exists """
     queue_length = len(sonos.get_queue())
-    index = int(index) - 1
-    if index >= 0 and index < queue_length:
-        current = int(sonos.get_current_track_info()['playlist_position']) - 1
-        if index != current:
-            return sonos.play_from_queue(index)
+    if index > 0 and index <= queue_length:
+        return True
     else:
         raise ValueError("Index has to be a integer within \
-                          the range 1 - %d" % queue_length)
+            the range 1 - %d" % queue_length)
+
+
+def play_index(sonos, index):
+    """ Play an item from the playlist """
+    index = int(index)
+    if is_index_in_queue(sonos, index):
+        index -= 1
+        position = sonos.get_current_track_info()['playlist_position']
+        current = int(position) - 1
+        if index != current:
+            return sonos.play_from_queue(index)
 
 
 def list_ips():
