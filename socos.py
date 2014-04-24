@@ -293,12 +293,12 @@ def list_ips():
     KNOWN_SPEAKERS.clear()
     ips = sonos.get_speaker_ips()
     ips.sort()
-    for zone_number, ip in enumerate(ips, 1):
-        name = soco.SoCo(ip).player_name
+    for zone_number, ip_address in enumerate(ips, 1):
+        name = soco.SoCo(ip_address).player_name
         if hasattr(name, 'decode'):
             name = name.encode('utf-8')
-        KNOWN_SPEAKERS[str(zone_number)] = ip
-        yield '({}) {: <15} {}'.format(zone_number, ip, name)
+        KNOWN_SPEAKERS[str(zone_number)] = ip_address
+        yield '({}) {: <15} {}'.format(zone_number, ip_address, name)
 
 
 def speaker_info(sonos):
