@@ -139,8 +139,8 @@ def shell():
     while True:
         try:
             # Not sure why this is necessary, as there is a player_name attr
-            # pylint: disable=no-member
             if CUR_SPEAKER:
+                # pylint: disable=no-member
                 speaker = CUR_SPEAKER.player_name
                 if hasattr(speaker, 'decode'):
                     speaker = speaker.encode('utf-8')
@@ -294,6 +294,7 @@ def list_ips():
     ips = sonos.get_speaker_ips()
     ips.sort()
     for zone_number, ip_address in enumerate(ips, 1):
+        # pylint: disable=no-member
         name = soco.SoCo(ip_address).player_name
         if hasattr(name, 'decode'):
             name = name.encode('utf-8')
