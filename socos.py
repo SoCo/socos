@@ -140,7 +140,7 @@ def shell():
         try:
             # Not sure why this is necessary, as there is a player_name attr
             if CUR_SPEAKER:
-                # pylint: disable=no-member
+                # pylint: disable=maybe-no-member
                 speaker = CUR_SPEAKER.player_name
                 if hasattr(speaker, 'decode'):
                     speaker = speaker.encode('utf-8')
