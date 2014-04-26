@@ -266,6 +266,7 @@ def play_index(sonos, index):
     """ Play an item from the playlist """
     index = int(index)
     if is_index_in_queue(sonos, index):
+        # Translate from socos one-based to SoCo zero-based
         index -= 1
         position = sonos.get_current_track_info()['playlist_position']
         current = int(position) - 1
