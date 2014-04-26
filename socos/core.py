@@ -51,7 +51,7 @@ def process_cmd(args):
 
     try:
         result = _call_func(func, args)
-    except (TypeError, SoCoIllegalSeekException) as ex:
+    except (TypeError, SoCoIllegalSeekException, ValueError) as ex:
         err(ex)
         return
 
@@ -252,26 +252,35 @@ def err(message):
     print(message, file=sys.stderr)
 
 
-def is_index_in_queue(sonos, index):
+def get_queue_length(sonos):
+    """ Helper function for queue related functions """
+    return len(sonos.get_queue())
+
+
+def is_index_in_queue(index, queue_length):
     """ Helper function to verify if index exists """
-    queue_length = len(sonos.get_queue())
     if index > 0 and index <= queue_length:
         return True
-    else:
-        raise ValueError("Index has to be a integer within \
-            the range 1 - %d" % queue_length)
+    return False
 
 
 def play_index(sonos, index):
     """ Play an item from the playlist """
     index = int(index)
-    if is_index_in_queue(sonos, index):
+    queue_length = get_queue_length(sonos)
+
+    if is_index_in_queue(index, queue_length):
         # Translate from socos one-based to SoCo zero-based
         index -= 1
         position = sonos.get_current_track_info()['playlist_position']
         current = int(position) - 1
         if index != current:
             return sonos.play_from_queue(index)
+    else:
+        error = "Index %d is not within range 1 - %d" % (
+                index,
+                queue_length)
+        raise ValueError(error)
 
 
 def list_ips():
@@ -326,9 +335,18 @@ def remove_from_queue(sonos, *args):
     """ Remove track from queue by index """
     if args:
         index = int(args[0])
-        if is_index_in_queue(sonos, index):
-            sonos.remove_from_queue(index)
+        remove_index_from_queue(sonos, index)
     return get_queue(sonos)
+
+
+def remove_index_from_queue(sonos, index):
+    """ Remove one track from the queue by its index """
+    queue_length = get_queue_length(sonos)
+    if is_index_in_queue(index, queue_length):
+        sonos.remove_from_queue(index)
+    else:
+        error = "Index %d is not within range 1 - %d" % (index, queue_length)
+        raise ValueError(error)
 
 
 def play_next(sonos):
