@@ -39,6 +39,8 @@ import soco
 
 # current speaker (used only in interactive mode)
 CUR_SPEAKER = None
+# known speakers (used only in interactive mode)
+KNOWN_SPEAKERS = {}
 
 
 def main():
@@ -137,11 +139,15 @@ def shell():
     while True:
         try:
             # Not sure why this is necessary, as there is a player_name attr
-            # pylint: disable=no-member
             if CUR_SPEAKER:
+                # pylint: disable=maybe-no-member
+                speaker = CUR_SPEAKER.player_name
+                if hasattr(speaker, 'decode'):
+                    speaker = speaker.encode('utf-8')
                 line = input('socos({speaker}|{state})> '.format(
-                    speaker=CUR_SPEAKER.player_name,
-                    state=state(CUR_SPEAKER).title()).encode('utf-8'))
+                    speaker=speaker,
+                    state=state(CUR_SPEAKER).title()
+                    ))
             else:
                 line = input('socos> ')
         except EOFError:
@@ -284,7 +290,16 @@ def play_index(sonos, index):
 def list_ips():
     """ List available devices """
     sonos = soco.SonosDiscovery()
-    return sonos.get_speaker_ips()
+    KNOWN_SPEAKERS.clear()
+    ips = sonos.get_speaker_ips()
+    ips.sort()
+    for zone_number, ip_address in enumerate(ips, 1):
+        # pylint: disable=no-member
+        name = soco.SoCo(ip_address).player_name
+        if hasattr(name, 'decode'):
+            name = name.encode('utf-8')
+        KNOWN_SPEAKERS[str(zone_number)] = ip_address
+        yield '({}) {: <15} {}'.format(zone_number, ip_address, name)
 
 
 def speaker_info(sonos):
@@ -334,12 +349,25 @@ def state(sonos):
     return sonos.get_current_transport_info()['current_transport_state']
 
 
-def set_speaker(ip_address):
-    """ set the current speaker for the shell session """
+def set_speaker(arg):
+    """ Set the current speaker for the shell session by ip or speaker number
+
+    Parameters:
+    arg    is either an ip or the number of a speaker as shown by list
+    """
+    # Update the list of known speakers if that has not already been done
+    if not KNOWN_SPEAKERS:
+        list(list_ips())
+
     # pylint: disable=global-statement,fixme
     # TODO: this should be refactored into a class with instance-wide state
     global CUR_SPEAKER
-    CUR_SPEAKER = soco.SoCo(ip_address)
+    # Set speaker by speaker number as identified by list_ips ...
+    if '.' not in arg and arg in KNOWN_SPEAKERS:
+        CUR_SPEAKER = soco.SoCo(KNOWN_SPEAKERS[arg])
+    # ... and if not that, then by ip
+    else:
+        CUR_SPEAKER = soco.SoCo(arg)
 
 
 def unset_speaker():
