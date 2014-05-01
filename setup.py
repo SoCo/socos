@@ -11,7 +11,7 @@ import re
 import os.path
 
 dirname = os.path.dirname(os.path.abspath(__file__))
-filename = os.path.join(dirname, 'socos.py')
+filename = os.path.join(dirname, 'runner.py')
 src = open(filename).read()
 metadata = dict(re.findall("__([a-z]+)__ = '([^']+)'", src))
 docstrings = re.findall('"""(.*)"""', src)
