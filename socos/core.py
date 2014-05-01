@@ -1,3 +1,6 @@
+"""The core module exposes the two public functions process_cmd and shell.
+It also contains all private functions used by the two."""
+
 from __future__ import print_function
 
 import sys
