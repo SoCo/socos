@@ -46,17 +46,6 @@ CUR_SPEAKER = None
 KNOWN_SPEAKERS = {}
 
 
-def main():
-    """ main switches between (non-)interactive mode """
-    args = sys.argv[1:]
-
-    if args:
-        # process command and exit
-        process_cmd(args)
-    else:
-        # start interactive shell
-        shell()
-
 
 def process_cmd(args):
     """ Processes a single command """
@@ -427,5 +416,3 @@ COMMANDS = {
 }
 
 
-if __name__ == '__main__':
-    main()
