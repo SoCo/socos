@@ -18,9 +18,6 @@ docstrings = re.findall('"""(.*)"""', src)
 
 PACKAGE = 'socos'
 
-MODULES = (
-    'socos',
-)
 
 AUTHOR_EMAIL = metadata['author']
 VERSION = metadata['version']
@@ -47,7 +44,6 @@ setup(name=PACKAGE,
       author_email=EMAIL,
       license=LICENSE,
       url=WEBSITE,
-      py_modules=MODULES,
       scripts=['bin/socos'],
       entry_points={
           'console_scripts': [
