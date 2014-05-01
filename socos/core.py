@@ -37,7 +37,6 @@ CUR_SPEAKER = None
 KNOWN_SPEAKERS = {}
 
 
-
 def process_cmd(args):
     """ Processes a single command """
 
@@ -405,5 +404,3 @@ COMMANDS = {
     'unset':      (False, unset_speaker),
     'help':       (False, get_help),
 }
-
-

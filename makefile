@@ -1,6 +1,7 @@
 
-lint: socos.py
-	flake8 socos.py
-	pylint socos.py
+lint:
+	flake8 runner.py socos/*.py
+	pylint runner.py socos/*.py
+
 
 .PHONY: lint
