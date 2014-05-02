@@ -81,7 +81,7 @@ def process_cmd(args):
     if result is None:
         pass
 
-    elif not isinstance(result, str) and not isinstance(result, int):
+    elif not isinstance(result, str):
         for line in result:
             print(line)
 
