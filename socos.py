@@ -81,7 +81,7 @@ def process_cmd(args):
     if result is None:
         pass
 
-    elif not isinstance(result, str):
+    elif not isinstance(result, str) and not isinstance(result, int):
         for line in result:
             print(line)
 
@@ -314,7 +314,7 @@ def volume(sonos, *args):
         operator = args[0].lower()
         adjust_volume(sonos, operator)
 
-    return sonos.volume
+    return str(sonos.volume)
 
 
 def exit_shell():
