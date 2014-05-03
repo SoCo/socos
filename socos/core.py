@@ -29,7 +29,7 @@ except NameError:
 import soco
 from soco.exceptions import SoCoUPnPException
 
-from socos import SoCoIllegalSeekException
+from .exceptions import SoCoIllegalSeekException
 
 # current speaker (used only in interactive mode)
 CUR_SPEAKER = None
