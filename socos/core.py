@@ -317,7 +317,7 @@ def play_next(sonos):
     """ Play the next track """
     try:
         sonos.next()
-    except SoCoUPnPException as ex:
+    except SoCoUPnPException:
         raise SoCoIllegalSeekException('No such track')
     return get_current_track_info(sonos)
 
@@ -326,7 +326,7 @@ def play_previous(sonos):
     """ Play the previous track """
     try:
         sonos.previous()
-    except SoCoUPnPException as ex:
+    except SoCoUPnPException:
         raise SoCoIllegalSeekException('No suck track')
     return get_current_track_info(sonos)
 
