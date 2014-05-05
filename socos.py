@@ -258,9 +258,9 @@ def get_queue(sonos):
             "%s%s: %s - %s. From album %s." % (
                 color,
                 idx,
-                track['artist'],
-                track['title'],
-                track['album'],
+                track.creator,
+                track.title,
+                track.album,
             )
         )
 
@@ -289,17 +289,16 @@ def play_index(sonos, index):
 
 def list_ips():
     """ List available devices """
-    sonos = soco.SonosDiscovery()
+    devices = soco.discover()
     KNOWN_SPEAKERS.clear()
-    ips = sonos.get_speaker_ips()
-    ips.sort()
-    for zone_number, ip_address in enumerate(ips, 1):
+
+    for zone_number, device in enumerate(devices, 1):
         # pylint: disable=no-member
-        name = soco.SoCo(ip_address).player_name
+        name = device.player_name
         if hasattr(name, 'decode'):
             name = name.encode('utf-8')
-        KNOWN_SPEAKERS[str(zone_number)] = ip_address
-        yield '({}) {: <15} {}'.format(zone_number, ip_address, name)
+        KNOWN_SPEAKERS[str(zone_number)] = device.ip_address
+        yield '({}) {: <15} {}'.format(zone_number, device.ip_address, name)
 
 
 def speaker_info(sonos):
