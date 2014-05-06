@@ -277,9 +277,7 @@ def play_index(sonos, index):
         if index != current:
             return sonos.play_from_queue(index)
     else:
-        error = "Index %d is not within range 1 - %d" % (
-                index,
-                queue_length)
+        error = "Index %d is not within range 1 - %d" % (index, queue_length)
         raise ValueError(error)
 
 
