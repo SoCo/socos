@@ -1,7 +1,7 @@
 
 lint:
-	flake8 runner.py socos/*.py
-	pylint runner.py socos/*.py
+	flake8 bin/socos socos/*.py
+	pylint bin/socos socos/*.py
 
 
 .PHONY: lint
