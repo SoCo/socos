@@ -30,6 +30,7 @@ import soco
 from soco.exceptions import SoCoUPnPException
 
 from .exceptions import SoCoIllegalSeekException
+from .music_adjustments import MusicAdjustments
 
 # current speaker (used only in interactive mode)
 CUR_SPEAKER = None
@@ -167,40 +168,6 @@ def complete_command(text, context):
     return matches[context]
 
 
-def adjust_volume(sonos, operator):
-    """ Adjust the volume up or down with a factor from 1 to 100 """
-    factor = get_volume_adjustment_factor(operator)
-    if not factor:
-        return False
-
-    vol = sonos.volume
-
-    if operator[0] == '+':
-        if (vol + factor) > 100:
-            factor = 1
-        sonos.volume = (vol + factor)
-        return sonos.volume
-    elif operator[0] == '-':
-        if (vol - factor) < 0:
-            factor = 1
-        sonos.volume = (vol - factor)
-        return sonos.volume
-    else:
-        err("Valid operators for volume are + and -")
-
-
-def get_volume_adjustment_factor(operator):
-    """ get the factor to adjust the volume with """
-    factor = 1
-    if len(operator) > 1:
-        try:
-            factor = int(operator[1:])
-        except ValueError:
-            err("Adjustment factor for volume has to be a int.")
-            return
-    return factor
-
-
 def get_current_track_info(sonos):
     """ Show the current track """
     track = sonos.get_current_track_info()
@@ -289,9 +256,30 @@ def volume(sonos, *args):
     """ Change or show the volume of a device """
     if args:
         operator = args[0].lower()
-        adjust_volume(sonos, operator)
+        music_adjustments = MusicAdjustments(sonos)
+        music_adjustments.adjust_volume(operator)
 
     return str(sonos.volume)
+
+
+def bass(sonos, *args):
+    """ Change or show the bass value of a device """
+    if args:
+        operator = args[0].lower()
+        music_adjustments = MusicAdjustments(sonos)
+        music_adjustments.adjust_bass(operator)
+
+    return str(sonos.bass)
+
+
+def treble(sonos, *args):
+    """ Change or show the treble value of a device """
+    if args:
+        operator = args[0].lower()
+        music_adjustments = MusicAdjustments(sonos)
+        music_adjustments.adjust_treble(operator)
+
+    return str(sonos.treble)
 
 
 def exit_shell():
@@ -394,6 +382,8 @@ COMMANDS = {
     'current':    (True, get_current_track_info),
     'queue':      (True, get_queue),
     'volume':     (True, volume),
+    'bass':       (True, bass),
+    'treble':     (True, treble),
     'state':      (True, state),
     'exit':       (False, exit_shell),
     'set':        (False, set_speaker),
