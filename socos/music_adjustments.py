@@ -1,5 +1,7 @@
 """ The MusicAdjustments class contains all functionality related to
 adjusting value like volume, bass, treble. """
+
+from __future__ import print_function
 import sys
 
 
