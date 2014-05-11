@@ -51,7 +51,7 @@ def process_cmd(args):
 
     try:
         result = _call_func(func, args)
-    except (TypeError, SoCoIllegalSeekException) as ex:
+    except (ValueError, TypeError, SoCoIllegalSeekException) as ex:
         err(ex)
         return
 
@@ -303,11 +303,7 @@ def play(sonos, *args):
     """ Start playing """
     if args:
         idx = args[0]
-        try:
-            play_index(sonos, idx)
-        except ValueError as ex:
-            err(ex)
-            return
+        play_index(sonos, idx)
     else:
         sonos.play()
     return get_current_track_info(sonos)
