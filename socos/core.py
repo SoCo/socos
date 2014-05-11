@@ -1,16 +1,7 @@
-#!/usr/bin/env python
-
-""" socos is a commandline tool for controlling Sonos speakers """
+"""The core module exposes the two public functions process_cmd and shell.
+It also contains all private functions used by the two."""
 
 from __future__ import print_function
-
-
-# Will be parsed by setup.py to determine package metadata
-__author__ = 'SoCo team <python-soco @googlegroups.com>'
-__version__ = '0.1'
-__website__ = 'https://github.com/SoCo/socos'
-__license__ = 'MIT License'
-
 
 import sys
 import shlex
@@ -36,23 +27,14 @@ except NameError:
     pass
 
 import soco
+from soco.exceptions import SoCoUPnPException
+
+from .exceptions import SoCoIllegalSeekException
 
 # current speaker (used only in interactive mode)
 CUR_SPEAKER = None
 # known speakers (used only in interactive mode)
 KNOWN_SPEAKERS = {}
-
-
-def main():
-    """ main switches between (non-)interactive mode """
-    args = sys.argv[1:]
-
-    if args:
-        # process command and exit
-        process_cmd(args)
-    else:
-        # start interactive shell
-        shell()
 
 
 def process_cmd(args):
@@ -69,7 +51,7 @@ def process_cmd(args):
 
     try:
         result = _call_func(func, args)
-    except TypeError as ex:
+    except (TypeError, SoCoIllegalSeekException) as ex:
         err(ex)
         return
 
@@ -333,13 +315,19 @@ def play(sonos, *args):
 
 def play_next(sonos):
     """ Play the next track """
-    sonos.next()
+    try:
+        sonos.next()
+    except SoCoUPnPException:
+        raise SoCoIllegalSeekException('No such track')
     return get_current_track_info(sonos)
 
 
 def play_previous(sonos):
     """ Play the previous track """
-    sonos.previous()
+    try:
+        sonos.previous()
+    except SoCoUPnPException:
+        raise SoCoIllegalSeekException('No suck track')
     return get_current_track_info(sonos)
 
 
@@ -416,7 +404,3 @@ COMMANDS = {
     'unset':      (False, unset_speaker),
     'help':       (False, get_help),
 }
-
-
-if __name__ == '__main__':
-    main()

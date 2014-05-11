@@ -11,16 +11,13 @@ import re
 import os.path
 
 dirname = os.path.dirname(os.path.abspath(__file__))
-filename = os.path.join(dirname, 'socos.py')
+filename = os.path.join(dirname, 'socos/__init__.py')
 src = open(filename).read()
 metadata = dict(re.findall("__([a-z]+)__ = '([^']+)'", src))
 docstrings = re.findall('"""(.*)"""', src)
 
 PACKAGE = 'socos'
-
-MODULES = (
-    'socos',
-)
+PACKAGES = [ PACKAGE ]
 
 AUTHOR_EMAIL = metadata['author']
 VERSION = metadata['version']
@@ -47,11 +44,10 @@ setup(name=PACKAGE,
       author_email=EMAIL,
       license=LICENSE,
       url=WEBSITE,
-      py_modules=MODULES,
-      scripts=['bin/socos'],
+      packages=PACKAGES,
       entry_points={
           'console_scripts': [
-              'socos = socos:main',
+              'socos = socos.runner:main',
           ]
       },
       **OPTIONS)
