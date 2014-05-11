@@ -255,18 +255,14 @@ def err(message):
 def play_index(sonos, index):
     """ Play an item from the playlist """
     queue_length = len(sonos.get_queue())
-    try:
-        index = int(index) - 1
-        if index >= 0 and index < queue_length:
-            position = sonos.get_current_track_info()['playlist_position']
-            current = int(position) - 1
-            if index != current:
-                return sonos.play_from_queue(index)
-        else:
-            raise ValueError()
-    except ValueError():
-        return "Index has to be a integer within \
-                the range 1 - %d" % queue_length
+    index = int(index) - 1
+    if index >= 0 and index < queue_length:
+        current = int(sonos.get_current_track_info()['playlist_position']) - 1
+        if index != current:
+            return sonos.play_from_queue(index)
+    else:
+        raise ValueError("Index has to be a integer within \
+                          the range 1 - %d" % queue_length)
 
 
 def list_ips():
@@ -307,7 +303,11 @@ def play(sonos, *args):
     """ Start playing """
     if args:
         idx = args[0]
-        play_index(sonos, idx)
+        try:
+            play_index(sonos, idx)
+        except ValueError as ex:
+            err(ex)
+            return
     else:
         sonos.play()
     return get_current_track_info(sonos)
