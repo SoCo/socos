@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 """ socos is a commandline tool for controlling Sonos speakers """
 
+# when running from source, prefer source to installed version
 import sys
 import os.path
-sys.path.insert(0, os.path.abspath(
-    os.path.join(os.path.dirname(__file__), '..')))
-
+BASEDIR = os.path.abspath(os.path.dirname(__file__))
+sys.path.insert(0, os.path.join(BASEDIR, '..'))
 
 from socos import process_cmd, shell
 

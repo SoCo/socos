@@ -17,7 +17,7 @@ metadata = dict(re.findall("__([a-z]+)__ = '([^']+)'", src))
 docstrings = re.findall('"""(.*)"""', src)
 
 PACKAGE = 'socos'
-
+PACKAGES = [ PACKAGE ]
 
 AUTHOR_EMAIL = metadata['author']
 VERSION = metadata['version']
@@ -44,10 +44,10 @@ setup(name=PACKAGE,
       author_email=EMAIL,
       license=LICENSE,
       url=WEBSITE,
-      scripts=['bin/socos'],
+      packages=PACKAGES,
       entry_points={
           'console_scripts': [
-              'socos = socos:main',
+              'socos = socos.runner:main',
           ]
       },
       **OPTIONS)
