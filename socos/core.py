@@ -30,7 +30,7 @@ import soco
 from soco.exceptions import SoCoUPnPException
 
 from .exceptions import SoCoIllegalSeekException
-from .rendering_adjustments import RenderingAdjustments
+from . import mixer
 
 # current speaker (used only in interactive mode)
 CUR_SPEAKER = None
@@ -254,32 +254,32 @@ def speaker_info(sonos):
 
 def volume(sonos, *args):
     """ Change or show the volume of a device """
-    if args:
-        operator = args[0].lower()
-        rendering_adjustments = RenderingAdjustments(sonos)
-        rendering_adjustments.adjust_volume(operator)
+    if not args:
+        return str(sonos.volume)
 
-    return str(sonos.volume)
+    operator = args[0]
+    newvolume = mixer.adjust_volume(sonos, operator)
+    return str(newvolume)
 
 
 def bass(sonos, *args):
     """ Change or show the bass value of a device """
-    if args:
-        operator = args[0].lower()
-        rendering_adjustments = RenderingAdjustments(sonos)
-        rendering_adjustments.adjust_bass(operator)
+    if not args:
+        return str(sonos.bass)
 
-    return str(sonos.bass)
+    operator = args[0]
+    newbass = mixer.adjust_bass(sonos, operator)
+    return str(newbass)
 
 
 def treble(sonos, *args):
     """ Change or show the treble value of a device """
-    if args:
-        operator = args[0].lower()
-        rendering_adjustments = RenderingAdjustments(sonos)
-        rendering_adjustments.adjust_treble(operator)
+    if not args:
+        return str(sonos.treble)
 
-    return str(sonos.treble)
+    operator = args[0]
+    newtreble = mixer.adjust_treble(sonos, operator)
+    return str(newtreble)
 
 
 def exit_shell():
