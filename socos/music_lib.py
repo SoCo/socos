@@ -314,10 +314,10 @@ class MusicLibrary(object):
     def _print_results(data_type, results):
         """Print the results out nicely"""
         print_patterns = {
-            u'tracks': '\'{title}\' on \'{album}\' by \'{creator}\'',
-            u'albums': '\'{title}\' by \'{creator}\'',
-            u'artists': '\'{title}\'',
-            u'playlists': '\'{title}\''
+            'tracks': '\'{title}\' on \'{album}\' by \'{creator}\'',
+            'albums': '\'{title}\' by \'{creator}\'',
+            'artists': '\'{title}\'',
+            'playlists': '\'{title}\''
         }
         # Length of the results length number
         index_length = len(str(len(results)))
