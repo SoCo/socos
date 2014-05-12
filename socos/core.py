@@ -252,17 +252,33 @@ def err(message):
     print(message, file=sys.stderr)
 
 
+def get_queue_length(sonos):
+    """ Helper function for queue related functions """
+    return len(sonos.get_queue())
+
+
+def is_index_in_queue(index, queue_length):
+    """ Helper function to verify if index exists """
+    if index > 0 and index <= queue_length:
+        return True
+    return False
+
+
 def play_index(sonos, index):
     """ Play an item from the playlist """
-    queue_length = len(sonos.get_queue())
-    index = int(index) - 1
-    if index >= 0 and index < queue_length:
-        current = int(sonos.get_current_track_info()['playlist_position']) - 1
+    index = int(index)
+    queue_length = get_queue_length(sonos)
+
+    if is_index_in_queue(index, queue_length):
+        # Translate from socos one-based to SoCo zero-based
+        index -= 1
+        position = sonos.get_current_track_info()['playlist_position']
+        current = int(position) - 1
         if index != current:
             return sonos.play_from_queue(index)
     else:
-        raise ValueError("Index has to be a integer within \
-                          the range 1 - %d" % queue_length)
+        error = "Index %d is not within range 1 - %d" % (index, queue_length)
+        raise ValueError(error)
 
 
 def list_ips():
@@ -307,6 +323,24 @@ def play(sonos, *args):
     else:
         sonos.play()
     return get_current_track_info(sonos)
+
+
+def remove_from_queue(sonos, *args):
+    """ Remove track from queue by index """
+    if args:
+        index = int(args[0])
+        remove_index_from_queue(sonos, index)
+    return get_queue(sonos)
+
+
+def remove_index_from_queue(sonos, index):
+    """ Remove one track from the queue by its index """
+    queue_length = get_queue_length(sonos)
+    if is_index_in_queue(index, queue_length):
+        sonos.remove_from_queue(index)
+    else:
+        error = "Index %d is not within range 1 - %d" % (index, queue_length)
+        raise ValueError(error)
 
 
 def play_next(sonos):
@@ -393,6 +427,7 @@ COMMANDS = {
     'previous':   (True, play_previous),
     'current':    (True, get_current_track_info),
     'queue':      (True, get_queue),
+    'remove':     (True, remove_from_queue),
     'volume':     (True, volume),
     'state':      (True, state),
     'exit':       (False, exit_shell),
