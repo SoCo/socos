@@ -68,7 +68,7 @@ def process_cmd(args):
     if result is None:
         pass
 
-    elif hasattr(result, '__iter__'):
+    elif not isinstance(result, str):
         try:
             for line in result:
                 print(line)
