@@ -5,6 +5,7 @@ from __future__ import print_function
 
 import sys
 import shlex
+from collections import OrderedDict
 
 try:
     # pylint: disable=import-error
@@ -29,12 +30,15 @@ except NameError:
 import soco
 from soco.exceptions import SoCoUPnPException
 
-from .exceptions import SoCoIllegalSeekException
+from .exceptions import SoCoIllegalSeekException, SocosException
+from .music_lib import MusicLibrary
 
 # current speaker (used only in interactive mode)
 CUR_SPEAKER = None
 # known speakers (used only in interactive mode)
 KNOWN_SPEAKERS = {}
+# Music library instance
+MUSIC_LIB = MusicLibrary()
 
 
 def process_cmd(args):
@@ -51,7 +55,8 @@ def process_cmd(args):
 
     try:
         result = _call_func(func, args)
-    except (ValueError, TypeError, SoCoIllegalSeekException) as ex:
+    except (ValueError, TypeError, SocosException,
+            SoCoIllegalSeekException) as ex:
         err(ex)
         return
 
@@ -63,9 +68,14 @@ def process_cmd(args):
     if result is None:
         pass
 
-    elif not isinstance(result, str):
-        for line in result:
-            print(line)
+    elif hasattr(result, '__iter__'):
+        try:
+            for line in result:
+                print(line)
+        except (ValueError, TypeError, SocosException,
+                SoCoIllegalSeekException) as ex:
+            err(ex)
+            return
 
     else:
         print(result)
@@ -359,7 +369,7 @@ def unset_speaker():
     CUR_SPEAKER = None
 
 
-def get_help():
+def get_help(command=None):
     """ Prints a list of commands with short description """
 
     def _cmd_summary(item):
@@ -368,35 +378,48 @@ def get_help():
         if isinstance(func, str):
             func = getattr(soco.SoCo, func)
         doc = getattr(func, '__doc__') or ''
-        doc = doc.split('\n')[0]
-        return ' * {cmd:10s} {doc}'.format(cmd=name, doc=doc)
+        doc = doc.split('\n')[0].lstrip()
+        return ' * {cmd:12s} {doc}'.format(cmd=name, doc=doc)
 
-    # pylint: disable=bad-builtin
-    texts = ['Available commands:']
-    texts += map(_cmd_summary, COMMANDS.items())
-    return '\n'.join(texts)
+    if command and command in COMMANDS:
+        func = COMMANDS[command][1]
+        doc = getattr(func, '__doc__') or ''
+        doc = [line.lstrip() for line in doc.split('\n')]
+        out = '\n'.join(doc)
+    else:
+        texts = ['Available commands:']
+        # pylint: disable=bad-builtin
+        texts += map(_cmd_summary, COMMANDS.items())
+        out = '\n'.join(texts)
+    return out
 
 
 # COMMANDS indexes commands by their name. Each command is a 2-tuple of
 # (requires_ip, function) where function is either a callable, or a
 # method name to be called on a SoCo instance (depending on requires_ip)
 # If requires_ip is False, function must be a callable.
-COMMANDS = {
+COMMANDS = OrderedDict((
     #  cmd         req IP  func
-    'list':       (False, list_ips),
-    'partymode':  (True, 'partymode'),
-    'info':       (True, speaker_info),
-    'play':       (True, play),
-    'pause':      (True, 'pause'),
-    'stop':       (True, 'stop'),
-    'next':       (True, play_next),
-    'previous':   (True, play_previous),
-    'current':    (True, get_current_track_info),
-    'queue':      (True, get_queue),
-    'volume':     (True, volume),
-    'state':      (True, state),
-    'exit':       (False, exit_shell),
-    'set':        (False, set_speaker),
-    'unset':      (False, unset_speaker),
-    'help':       (False, get_help),
-}
+    # pylint: disable=bad-whitespace
+    ('list',         (False, list_ips)),
+    ('partymode',    (True, 'partymode')),
+    ('info',         (True, speaker_info)),
+    ('play',         (True, play)),
+    ('pause',        (True, 'pause')),
+    ('stop',         (True, 'stop')),
+    ('next',         (True, play_next)),
+    ('previous',     (True, play_previous)),
+    ('current',      (True, get_current_track_info)),
+    ('queue',        (True, get_queue)),
+    ('volume',       (True, volume)),
+    ('state',        (True, state)),
+    ('ml_index',     (True, MUSIC_LIB.index)),
+    ('ml_tracks',    (True, MUSIC_LIB.tracks)),
+    ('ml_albums',    (True, MUSIC_LIB.albums)),
+    ('ml_artists',   (True, MUSIC_LIB.artists)),
+    ('ml_playlists', (True, MUSIC_LIB.playlists)),
+    ('exit',         (False, exit_shell)),
+    ('set',          (False, set_speaker)),
+    ('unset',        (False, unset_speaker)),
+    ('help',         (False, get_help)),
+))
