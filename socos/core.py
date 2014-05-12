@@ -458,4 +458,3 @@ COMMANDS = OrderedDict((
     ('unset',        (False, unset_speaker)),
     ('help',         (False, get_help)),
 ))
-

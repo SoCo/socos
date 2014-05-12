@@ -10,8 +10,8 @@ from collections import OrderedDict
 import sqlite3
 import json
 from soco.data_structures import MLTrack, MLAlbum, MLArtist, MLPlaylist
-from exceptions import SocosException
-import core
+from socos.exceptions import SocosException
+#import core
 
 
 class MusicLibrary(object):
@@ -296,7 +296,8 @@ class MusicLibrary(object):
         item = ml_classes[data_type].from_dict(item_dict)
 
         # Save state before queue manipulation
-        player_state = core.state(core.CUR_SPEAKER)
+        player_state =\
+          sonos.get_current_transport_info()['current_transport_state']
         out = 'Added to queue: \'{}\''
         if action == 'replace':
             sonos.clear_queue()
