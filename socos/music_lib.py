@@ -11,7 +11,6 @@ import sqlite3
 import json
 from soco.data_structures import MLTrack, MLAlbum, MLArtist, MLPlaylist
 from socos.exceptions import SocosException
-#import core
 
 
 class MusicLibrary(object):
@@ -297,7 +296,7 @@ class MusicLibrary(object):
 
         # Save state before queue manipulation
         player_state =\
-          sonos.get_current_transport_info()['current_transport_state']
+            sonos.get_current_transport_info()['current_transport_state']
         out = 'Added to queue: \'{}\''
         if action == 'replace':
             sonos.clear_queue()
