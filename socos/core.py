@@ -284,16 +284,18 @@ def play_index(sonos, index):
 
 def list_ips():
     """ List available devices """
-    devices = soco.discover()
-    KNOWN_SPEAKERS.clear()
+    ip_to_device = {device.ip_address: device for device in soco.discover()}
+    ip_addresses = list(ip_to_device.keys())
+    ip_addresses.sort()
 
-    for zone_number, device in enumerate(devices, 1):
+    KNOWN_SPEAKERS.clear()
+    for zone_number, ip_address in enumerate(ip_addresses, 1):
         # pylint: disable=no-member
-        name = device.player_name
+        name = ip_to_device[ip_address].player_name
         if hasattr(name, 'decode'):
             name = name.encode('utf-8')
-        KNOWN_SPEAKERS[str(zone_number)] = device.ip_address
-        yield '({}) {: <15} {}'.format(zone_number, device.ip_address, name)
+        KNOWN_SPEAKERS[str(zone_number)] = ip_to_device[ip_address]
+        yield '({}) {: <15} {}'.format(zone_number, ip_address, name)
 
 
 def speaker_info(sonos):
@@ -395,7 +397,7 @@ def set_speaker(arg):
     global CUR_SPEAKER
     # Set speaker by speaker number as identified by list_ips ...
     if '.' not in arg and arg in KNOWN_SPEAKERS:
-        CUR_SPEAKER = soco.SoCo(KNOWN_SPEAKERS[arg])
+        CUR_SPEAKER = KNOWN_SPEAKERS[arg]
     # ... and if not that, then by ip
     else:
         CUR_SPEAKER = soco.SoCo(arg)
