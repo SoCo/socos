@@ -1,7 +1,10 @@
+all: lint test
 
 lint:
-	flake8 socos/*.py
-	pylint socos/*.py
+	flake8 test.py socos/*.py
+	pylint test.py socos/*.py
 
+test:
+	python test.py
 
-.PHONY: lint
+.PHONY: all lint test

@@ -11,4 +11,4 @@ install:
   - pip install colorama
 
 script:
-  - make lint
+  - make

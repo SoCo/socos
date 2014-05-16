@@ -31,6 +31,7 @@ import soco
 from soco.exceptions import SoCoUPnPException
 
 from .exceptions import SoCoIllegalSeekException
+from . import mixer
 
 # current speaker (used only in interactive mode)
 CUR_SPEAKER = None
@@ -168,40 +169,6 @@ def complete_command(text, context):
     return matches[context]
 
 
-def adjust_volume(sonos, operator):
-    """ Adjust the volume up or down with a factor from 1 to 100 """
-    factor = get_volume_adjustment_factor(operator)
-    if not factor:
-        return False
-
-    vol = sonos.volume
-
-    if operator[0] == '+':
-        if (vol + factor) > 100:
-            factor = 1
-        sonos.volume = (vol + factor)
-        return sonos.volume
-    elif operator[0] == '-':
-        if (vol - factor) < 0:
-            factor = 1
-        sonos.volume = (vol - factor)
-        return sonos.volume
-    else:
-        err("Valid operators for volume are + and -")
-
-
-def get_volume_adjustment_factor(operator):
-    """ get the factor to adjust the volume with """
-    factor = 1
-    if len(operator) > 1:
-        try:
-            factor = int(operator[1:])
-        except ValueError:
-            err("Adjustment factor for volume has to be a int.")
-            return
-    return factor
-
-
 def get_current_track_info(sonos):
     """ Show the current track """
     track = sonos.get_current_track_info()
@@ -306,11 +273,32 @@ def speaker_info(sonos):
 
 def volume(sonos, *args):
     """ Change or show the volume of a device """
-    if args:
-        operator = args[0].lower()
-        adjust_volume(sonos, operator)
+    if not args:
+        return str(sonos.volume)
 
-    return str(sonos.volume)
+    operator = args[0]
+    newvolume = mixer.adjust_volume(sonos, operator)
+    return str(newvolume)
+
+
+def bass(sonos, *args):
+    """ Change or show the bass value of a device """
+    if not args:
+        return str(sonos.bass)
+
+    operator = args[0]
+    newbass = mixer.adjust_bass(sonos, operator)
+    return str(newbass)
+
+
+def treble(sonos, *args):
+    """ Change or show the treble value of a device """
+    if not args:
+        return str(sonos.treble)
+
+    operator = args[0]
+    newtreble = mixer.adjust_treble(sonos, operator)
+    return str(newtreble)
 
 
 def exit_shell():
@@ -445,6 +433,8 @@ COMMANDS = {
     'queue':      (True, get_queue),
     'remove':     (True, remove_from_queue),
     'volume':     (True, volume),
+    'bass':       (True, bass),
+    'treble':     (True, treble),
     'state':      (True, state),
     'exit':       (False, exit_shell),
     'set':        (False, set_speaker),
