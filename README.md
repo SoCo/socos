@@ -1,7 +1,7 @@
 socos
 =====
 
-socos (Sonos Controller Shell) is a commandline tools for controlling Sonos
+socos (Sonos Controller Shell) is a commandline tool for controlling Sonos
 speakers.
 
 Build
