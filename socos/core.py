@@ -215,12 +215,13 @@ def get_queue(sonos):
 
         idx = str(idx).rjust(padding)
         yield (
-            "%s%s: %s - %s. From album %s." % (
+            "%s%s: %s - %s. From album %s.%s" % (
                 color,
                 idx,
                 track.creator,
                 track.title,
                 track.album,
+                ANSI_RESET
             )
         )
 
