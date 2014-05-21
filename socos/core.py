@@ -221,7 +221,7 @@ def get_queue(sonos):
                 track.creator,
                 track.title,
                 track.album,
-                ANSI_RESET
+                ANSI_RESET,
             )
         )
 
