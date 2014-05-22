@@ -57,7 +57,7 @@ def process_cmd(args):
 
     try:
         result = _call_func(func, args)
-    except (ValueError, TypeError, SocosException,
+    except (KeyError, ValueError, TypeError, SocosException,
             SoCoIllegalSeekException) as ex:
         err(ex)
         return
@@ -74,7 +74,7 @@ def process_cmd(args):
         try:
             for line in result:
                 print(line)
-        except (ValueError, TypeError, SocosException,
+        except (KeyError, ValueError, TypeError, SocosException,
                 SoCoIllegalSeekException) as ex:
             err(ex)
             return
@@ -327,6 +327,18 @@ def play(sonos, *args):
     return get_current_track_info(sonos)
 
 
+def play_mode(sonos, *args):
+    """ Change or show the play mode of a device
+    Accepted modes: NORMAL, SHUFFLE_NOREPEAT, SHUFFLE, REPEAT_ALL """
+    if not args:
+        return sonos.play_mode
+
+    mode = args[0]
+    sonos.play_mode = mode
+
+    return sonos.play_mode
+
+
 def remove_from_queue(sonos, *args):
     """ Remove track from queue by index """
     if args:
@@ -444,6 +456,7 @@ COMMANDS = OrderedDict((
     ('stop',         (True, 'stop')),
     ('next',         (True, play_next)),
     ('previous',     (True, play_previous)),
+    ('mode',         (True, play_mode)),
     ('current',      (True, get_current_track_info)),
     ('queue',        (True, get_queue)),
     ('remove',       (True, remove_from_queue)),
