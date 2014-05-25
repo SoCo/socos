@@ -9,7 +9,8 @@ import os
 from collections import OrderedDict
 import sqlite3
 import json
-from soco.data_structures import MLTrack, MLAlbum, MLArtist, MLPlaylist, MLSonosPlaylist
+from soco.data_structures import MLTrack, MLAlbum, MLArtist, MLPlaylist, \
+    MLSonosPlaylist
 from socos.exceptions import SocosException
 
 
@@ -24,7 +25,8 @@ class MusicLibrary(object):
         self.cached_searches = OrderedDict()
         self.cache_length = 10
         # Date type and tables names
-        self.data_types = ['playlists', 'artists', 'albums', 'tracks', 'sonos_playlists']
+        self.data_types = ['playlists', 'artists', 'albums', 'tracks',
+                           'sonos_playlists']
 
     def _open_db(self):
         """Open a connection to the sqlite3 database and if necessary create
@@ -196,9 +198,9 @@ class MusicLibrary(object):
 
         Usage: ml_sonos_playlists text [action] [number]
 
-        'text' is searched for in the sonos playlist titles. Only a single word '\
-        'can be used as search text. Action can be 'add' or 'replace and '\
-        'number refers to the item number in the search results.
+        'text' is searched for in the sonos playlist titles. Only a single '\
+        'word can be used as search text. Action can be 'add' or 'replace '\
+        'and number refers to the item number in the search results.
 
         Examples
         ml_sonos_playlists metallica
@@ -277,7 +279,7 @@ class MusicLibrary(object):
                     self.cached_searches.popitem(last=False)
             else:
                 message = 'The search field \'{}\' is unknown. Only {} is '\
-                    'allowed for {}'.format(field, self._get_columns(data_type)[:-1], data_type)
+                    'allowed'.format(field, self._get_columns(data_type)[:-1])
                 raise ValueError(message)
         return results
 
