@@ -9,7 +9,7 @@ import os
 from collections import OrderedDict
 import sqlite3
 import json
-from soco.data_structures import MLTrack, MLAlbum, MLArtist, MLPlaylist
+from soco.data_structures import MLTrack, MLAlbum, MLArtist, MLPlaylist, MLSonosPlaylist
 from socos.exceptions import SocosException
 
 
@@ -24,7 +24,7 @@ class MusicLibrary(object):
         self.cached_searches = OrderedDict()
         self.cache_length = 10
         # Date type and tables names
-        self.data_types = ['playlists', 'artists', 'albums', 'tracks']
+        self.data_types = ['playlists', 'artists', 'albums', 'tracks', 'sonos_playlists']
 
     def _open_db(self):
         """Open a connection to the sqlite3 database and if necessary create
@@ -54,7 +54,7 @@ class MusicLibrary(object):
         query = 'SELECT name FROM sqlite_master WHERE type = "table"'
         self.cursor.execute(query)
         number_of_tables = len(self.cursor.fetchall())
-        if number_of_tables == 4:
+        if number_of_tables == 5:
             yield 'Deleting tables'
             query = 'DROP TABLE {}'
             for table_name in self.data_types:
@@ -69,6 +69,7 @@ class MusicLibrary(object):
             'CREATE TABLE albums (title text, artist text, content text)',
             'CREATE TABLE artists (title text, content text)',
             'CREATE TABLE playlists (title text, content text)',
+            'CREATE TABLE sonos_playlists (title text, content text)',
         ]
         for create in create_statements:
             self.cursor.execute(create)
@@ -190,6 +191,22 @@ class MusicLibrary(object):
         for string in self._search_and_play(sonos, 'playlists', *args):
             yield string
 
+    def sonos_playlists(self, sonos, *args):
+        """Search for an possibly play Sonos playlists
+
+        Usage: ml_sonos_playlists text [action] [number]
+
+        'text' is searched for in the sonos playlist titles. Only a single word '\
+        'can be used as search text. Action can be 'add' or 'replace and '\
+        'number refers to the item number in the search results.
+
+        Examples
+        ml_sonos_playlists metallica
+        ml_sonos_playlists metallica add 3
+        """
+        for string in self._search_and_play(sonos, 'sonos_playlists', *args):
+            yield string
+
     def _search_and_play(self, sonos, data_type, *args):
         """Perform a music library search and possibly play and item"""
         # Open the data base
@@ -199,7 +216,7 @@ class MusicLibrary(object):
         # Check if the music library has been indexed
         query = 'SELECT name FROM sqlite_master WHERE type = "table"'
         self.cursor.execute(query)
-        if len(self.cursor.fetchall()) != 4:
+        if len(self.cursor.fetchall()) != 5:
             message = 'Your music library cannot be search until it has been '\
                       'indexed. First run \'ml_index\''
             raise SocosException(message)
@@ -260,7 +277,7 @@ class MusicLibrary(object):
                     self.cached_searches.popitem(last=False)
             else:
                 message = 'The search field \'{}\' is unknown. Only {} is '\
-                    'allowed'.format(field, self._get_columns(data_type)[:-1])
+                    'allowed for {}'.format(field, self._get_columns(data_type)[:-1], data_type)
                 raise ValueError(message)
         return results
 
@@ -291,7 +308,8 @@ class MusicLibrary(object):
         # The last item in the search is the content dict in json
         item_dict = json.loads(results[number][-1])
         ml_classes = {'tracks': MLTrack, 'albums': MLAlbum,
-                      'artists': MLArtist, 'playlists': MLPlaylist}
+                      'artists': MLArtist, 'playlists': MLPlaylist,
+                      'sonos_playlists': MLSonosPlaylist}
         item = ml_classes[data_type].from_dict(item_dict)
 
         # Save state before queue manipulation
@@ -317,7 +335,8 @@ class MusicLibrary(object):
             'tracks': '\'{title}\' on \'{album}\' by \'{creator}\'',
             'albums': '\'{title}\' by \'{creator}\'',
             'artists': '\'{title}\'',
-            'playlists': '\'{title}\''
+            'playlists': '\'{title}\'',
+            'sonos_playlists': '\'{title}\''
         }
         # Length of the results length number
         index_length = len(str(len(results)))

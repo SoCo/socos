@@ -470,6 +470,7 @@ COMMANDS = OrderedDict((
     ('ml_albums',    (True, MUSIC_LIB.albums)),
     ('ml_artists',   (True, MUSIC_LIB.artists)),
     ('ml_playlists', (True, MUSIC_LIB.playlists)),
+    ('ml_sonos_playlists', (True, MUSIC_LIB.sonos_playlists)),
     ('exit',         (False, exit_shell)),
     ('set',          (False, set_speaker)),
     ('unset',        (False, unset_speaker)),
