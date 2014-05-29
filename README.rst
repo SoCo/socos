@@ -7,11 +7,18 @@ Sonos speakers.
 Build
 =====
 
-|Build Status|
-
-|Requirements Status|
-
-.. |Build Status| image:: https://travis-ci.org/SoCo/socos.svg?branch=master
+.. image:: https://travis-ci.org/SoCo/socos.svg?branch=master
    :target: https://travis-ci.org/SoCo/socos
-.. |Requirements Status| image:: https://requires.io/github/SoCo/socos/requirements.png?branch=master
+   :alt: Build Status
+
+.. image:: https://requires.io/github/SoCo/socos/requirements.png?branch=master
    :target: https://requires.io/github/SoCo/socos/requirements/?branch=master
+   :alt: Requirements Status
+
+.. image:: https://pypip.in/download/socos/badge.png
+   :target: https://pypi.python.org/pypi/socos/
+   :alt: Latest PyPI version
+
+.. image:: https://pypip.in/version/socos/badge.png
+   :target: https://pypi.python.org/pypi/socos/
+   :alt: Number of PyPI downloads
