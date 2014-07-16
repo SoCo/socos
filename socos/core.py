@@ -360,6 +360,7 @@ def remove_index_from_queue(sonos, index):
     """ Remove one track from the queue by its index """
     queue_length = get_queue_length(sonos)
     if is_index_in_queue(index, queue_length):
+        index -= 1
         sonos.remove_from_queue(index)
     else:
         error = "Index %d is not within range 1 - %d" % (index, queue_length)
