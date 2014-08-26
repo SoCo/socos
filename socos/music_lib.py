@@ -58,9 +58,9 @@ class MusicLibrary(object):
         number_of_tables = len(self.cursor.fetchall())
         if number_of_tables == 5:
             yield 'Deleting tables'
-            query = 'DROP TABLE {}'
+            query = 'DROP TABLE {table_name}'
             for table_name in self.data_types:
-                self.cursor.execute(query.format(table_name))
+                self.cursor.execute(query.format(table_name=table_name))
         self.connection.commit()
 
         # Form new tables
