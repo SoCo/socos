@@ -32,7 +32,7 @@ from soco.exceptions import SoCoUPnPException
 
 from .exceptions import SoCoIllegalSeekException, SocosException
 from .music_lib import MusicLibrary
-from .utils import parse_range
+from .utils import parse_range, requires_coordinator
 from . import mixer
 
 # current speaker (used only in interactive mode)
@@ -179,6 +179,7 @@ def complete_command(text, context):
     return matches[context]
 
 
+@requires_coordinator
 def get_current_track_info(sonos):
     """ Show the current track """
     track = sonos.get_current_track_info()
@@ -194,6 +195,7 @@ def get_current_track_info(sonos):
     )
 
 
+@requires_coordinator
 def get_queue(sonos):
     """ Show the current queue """
     queue = sonos.get_queue()
@@ -231,6 +233,7 @@ def err(message):
     print(message, file=sys.stderr)
 
 
+@requires_coordinator
 def get_queue_length(sonos):
     """ Helper function for queue related functions """
     return len(sonos.get_queue())
@@ -243,6 +246,7 @@ def is_index_in_queue(index, queue_length):
     return False
 
 
+@requires_coordinator
 def play_index(sonos, index):
     """ Play an item from the playlist """
     index = int(index)
@@ -317,6 +321,7 @@ def exit_shell():
     sys.exit(0)
 
 
+@requires_coordinator
 def play(sonos, *args):
     """ Start playing """
     if args:
@@ -327,6 +332,25 @@ def play(sonos, *args):
     return get_current_track_info(sonos)
 
 
+@requires_coordinator
+def pause(sonos):
+    """ Pause """
+    if state(sonos) == 'PLAYING':
+        sonos.pause()
+    return get_current_track_info(sonos)
+
+
+@requires_coordinator
+def stop(sonos):
+    """ Stop """
+    states = ['PLAYING', 'PAUSED_PLAYBACK']
+
+    if state(sonos) in states:
+        sonos.stop()
+    return get_current_track_info(sonos)
+
+
+@requires_coordinator
 def play_mode(sonos, *args):
     """ Change or show the play mode of a device
     Accepted modes: NORMAL, SHUFFLE_NOREPEAT, SHUFFLE, REPEAT_ALL """
@@ -356,6 +380,7 @@ def remove_range_from_queue(sonos, rem_range):
         remove_index_from_queue(sonos, index)
 
 
+@requires_coordinator
 def remove_index_from_queue(sonos, index):
     """ Remove one track from the queue by its index """
     queue_length = get_queue_length(sonos)
@@ -367,6 +392,7 @@ def remove_index_from_queue(sonos, index):
         raise ValueError(error)
 
 
+@requires_coordinator
 def play_next(sonos):
     """ Play the next track """
     try:
@@ -376,6 +402,7 @@ def play_next(sonos):
     return get_current_track_info(sonos)
 
 
+@requires_coordinator
 def play_previous(sonos):
     """ Play the previous track """
     try:
@@ -385,6 +412,7 @@ def play_previous(sonos):
     return get_current_track_info(sonos)
 
 
+@requires_coordinator
 def state(sonos):
     """ Get the current state of a device / group """
     return sonos.get_current_transport_info()['current_transport_state']
@@ -453,8 +481,8 @@ COMMANDS = OrderedDict((
     ('partymode',    (True, 'partymode')),
     ('info',         (True, speaker_info)),
     ('play',         (True, play)),
-    ('pause',        (True, 'pause')),
-    ('stop',         (True, 'stop')),
+    ('pause',        (True, pause)),
+    ('stop',         (True, stop)),
     ('next',         (True, play_next)),
     ('previous',     (True, play_previous)),
     ('mode',         (True, play_mode)),

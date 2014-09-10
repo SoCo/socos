@@ -1,6 +1,7 @@
 """ various utility functions """
 
 import re
+from functools import wraps
 
 # matches single numbers ("123") or ranges ("12..34")
 RANGE_PATTERN = re.compile(r'(\d+)(..(\d+))?')
@@ -35,3 +36,25 @@ def parse_range(txt):
         val2 = val1
 
     return range(val1, val2+1)
+
+
+def requires_coordinator(func):
+    """
+    A decorator to mark functions requiring a
+    group coordinator device.
+    """
+    @wraps(func)
+    def decorated(*args, **kwargs):
+        """
+        Grab sonos from first argument to the original function and turn this
+        into sonos.group.coordinator
+        before returning the decorated function.
+        """
+
+        sonos = args[0]
+
+        args = list(args)
+        args[0] = sonos.group.coordinator
+
+        return func(*args, **kwargs)
+    return decorated
