@@ -7,19 +7,21 @@ import os.path
 BASEDIR = os.path.abspath(os.path.dirname(__file__))
 sys.path.insert(0, os.path.join(BASEDIR, '..'))
 
-from socos import process_cmd, shell
+from socos import SoCos
 
 
 def main():
     """ main switches between (non-)interactive mode """
+    socos = SoCos()
     args = sys.argv[1:]
 
     if args:
         # process command and exit
-        process_cmd(args)
+        socos.process_cmd(args)
     else:
         # start interactive shell
-        shell()
+        #socos.shell()
+        raise NotImplementedError()
 
 if __name__ == '__main__':
     main()

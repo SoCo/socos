@@ -6,6 +6,6 @@ __version__ = '0.1'
 __website__ = 'https://github.com/SoCo/socos'
 __license__ = 'MIT License'
 
-from .core import process_cmd, shell
+from .core import SoCos
 
-__all__ = ['process_cmd', 'shell']
+__all__ = ['SoCos']

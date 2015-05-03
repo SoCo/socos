@@ -43,48 +43,6 @@ KNOWN_SPEAKERS = {}
 MUSIC_LIB = MusicLibrary()
 
 
-def process_cmd(args):
-    """ Processes a single command """
-
-    cmd = args.pop(0).lower()
-
-    if cmd not in COMMANDS:
-        err('Unknown command "{cmd}"'.format(cmd=cmd))
-        err(get_help())
-        return False
-
-    func, args = _check_args(cmd, args)
-
-    try:
-        result = _call_func(func, args)
-    except (KeyError, ValueError, TypeError, SocosException,
-            SoCoIllegalSeekException) as ex:
-        err(ex)
-        return
-
-    # colorama.init() takes over stdout/stderr to give cross-platform colors
-    if colorama:
-        colorama.init()
-
-    # process output
-    if result is None:
-        pass
-
-    elif not isinstance(result, str):
-        try:
-            for line in result:
-                print(line)
-        except (KeyError, ValueError, TypeError, SocosException,
-                SoCoIllegalSeekException) as ex:
-            err(ex)
-            return
-
-    else:
-        print(result)
-
-    # Release stdout/stderr from colorama
-    if colorama:
-        colorama.deinit()
 
 
 def _call_func(func, args):
@@ -504,3 +462,81 @@ COMMANDS = OrderedDict((
     ('unset',        (False, unset_speaker)),
     ('help',         (False, get_help)),
 ))
+
+
+def add_command(commands, command_name, requires_ip):
+    """Return a add command decorator"""
+    def decorate(function):
+        """Add a command to commands"""
+        commands[command_name] = (command_name, requires_ip)
+        return function
+    return decorate
+
+
+class SoCos(object):
+    """The main SoCos class"""
+
+    commands = OrderedDict()
+
+    def __init__(self):
+        self.commands['list'] = (False, self.list_ips)
+        self.known_speakers = {}
+        self.current_speaker = None
+
+    def process_cmd(self, args):
+        """Process a single command"""
+
+        cmd = args.pop(0).lower()
+
+        if cmd not in self.commands:
+            err('Unknown command "{cmd}"'.format(cmd=cmd))
+            err(get_help())
+            return False
+
+        func, args = _check_args(cmd, args)
+
+        try:
+            result = _call_func(func, args)
+        except (KeyError, ValueError, TypeError, SocosException,
+                SoCoIllegalSeekException) as ex:
+            err(ex)
+            return
+
+        # colorama.init() takes over stdout/stderr to give cross-platform colors
+        if colorama:
+            colorama.init()
+
+        # process output
+        if result is None:
+            pass
+
+        elif not isinstance(result, str):
+            try:
+                for line in result:
+                    print(line)
+            except (KeyError, ValueError, TypeError, SocosException,
+                    SoCoIllegalSeekException) as ex:
+                err(ex)
+                return
+
+        else:
+            print(result)
+
+        # Release stdout/stderr from colorama
+        if colorama:
+            colorama.deinit()
+
+    def list_ips(self):
+        """List available devices"""
+        ip_to_device = {device.ip_address: device for device in soco.discover()}
+        ip_addresses = list(ip_to_device.keys())
+        ip_addresses.sort()
+
+        self.known_speakers.clear()
+        for zone_number, ip_address in enumerate(ip_addresses, 1):
+            # pylint: disable=no-member
+            name = ip_to_device[ip_address].player_name
+            if hasattr(name, 'decode'):
+                name = name.encode('utf-8')
+            self.known_speakers[str(zone_number)] = ip_to_device[ip_address]
+            yield '({}) {: <15} {}'.format(zone_number, ip_address, name)
