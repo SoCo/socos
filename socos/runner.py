@@ -20,8 +20,8 @@ def main():
         socos.process_cmd(args)
     else:
         # start interactive shell
-        #socos.shell()
-        raise NotImplementedError()
+        socos.shell()
+
 
 if __name__ == '__main__':
     main()

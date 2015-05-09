@@ -1,3 +1,5 @@
+# pylint: disable=star-args,too-many-arguments
+
 """The core module exposes the two public functions process_cmd and shell.
 It also contains all private functions used by the two."""
 
@@ -5,7 +7,8 @@ from __future__ import print_function
 
 import sys
 import shlex
-from collections import OrderedDict
+from functools import partial
+from collections import OrderedDict, namedtuple
 
 try:
     # pylint: disable=import-error
@@ -34,156 +37,6 @@ from .exceptions import SoCoIllegalSeekException, SocosException
 from .music_lib import MusicLibrary
 from .utils import parse_range, requires_coordinator
 from . import mixer
-
-# current speaker (used only in interactive mode)
-CUR_SPEAKER = None
-# known speakers (used only in interactive mode)
-KNOWN_SPEAKERS = {}
-# Music library instance
-MUSIC_LIB = MusicLibrary()
-
-
-
-
-def _call_func(func, args):
-    """ handles str-based functions and calls appropriately """
-
-    # determine how to call function
-    if isinstance(func, str):
-        sonos = args.pop(0)
-        method = getattr(sonos, func)
-        return method(*args)  # pylint: disable=star-args
-
-    else:
-        return func(*args)  # pylint: disable=star-args
-
-
-def _check_args(cmd, args):
-    """ checks if func is called for a speaker and updates 'args' """
-
-    req_ip, func = COMMANDS[cmd]
-
-    if not req_ip:
-        return func, args
-
-    if not CUR_SPEAKER:
-        if not args:
-            err('Please specify a speaker IP for "{cmd}".'.format(cmd=cmd))
-            return None, None
-        else:
-            speaker_spec = args.pop(0)
-            sonos = soco.SoCo(speaker_spec)
-            args.insert(0, sonos)
-    else:
-        args.insert(0, CUR_SPEAKER)
-
-    return func, args
-
-
-def shell():
-    """ Start an interactive shell """
-
-    if readline is not None:
-        readline.parse_and_bind('tab: complete')
-        readline.set_completer(complete_command)
-        readline.set_completer_delims(' ')
-
-    while True:
-        try:
-            # Not sure why this is necessary, as there is a player_name attr
-            if CUR_SPEAKER:
-                # pylint: disable=maybe-no-member
-                speaker = CUR_SPEAKER.player_name
-                if hasattr(speaker, 'decode'):
-                    speaker = speaker.encode('utf-8')
-                line = input('socos({speaker}|{state})> '.format(
-                    speaker=speaker,
-                    state=state(CUR_SPEAKER).title()
-                    ))
-            else:
-                line = input('socos> ')
-        except EOFError:
-            print('')
-            break
-        except KeyboardInterrupt:
-            print('')
-            continue
-
-        line = line.strip()
-        if not line:
-            continue
-
-        try:
-            args = shlex.split(line)
-        except ValueError as value_error:
-            err('Syntax error: %(error)s' % {'error': value_error})
-            continue
-
-        try:
-            process_cmd(args)
-        except KeyboardInterrupt:
-            err('Keyboard interrupt.')
-        except EOFError:
-            err('EOF.')
-
-
-def complete_command(text, context):
-    """ auto-complete commands
-
-    text is the text to be auto-completed
-    context is an index, increased for every call for "text" to get next match
-    """
-    matches = [cmd for cmd in COMMANDS.keys() if cmd.startswith(text)]
-    return matches[context]
-
-
-@requires_coordinator
-def get_current_track_info(sonos):
-    """ Show the current track """
-    track = sonos.get_current_track_info()
-    return (
-        "Current track: %s - %s. From album %s. This is track number"
-        " %s in the playlist. It is %s minutes long." % (
-            track['artist'],
-            track['title'],
-            track['album'],
-            track['playlist_position'],
-            track['duration'],
-        )
-    )
-
-
-@requires_coordinator
-def get_queue(sonos):
-    """ Show the current queue """
-    queue = sonos.get_queue()
-
-    # pylint: disable=invalid-name
-    ANSI_BOLD = '\033[1m'
-    ANSI_RESET = '\033[0m'
-
-    current = int(sonos.get_current_track_info()['playlist_position'])
-
-    queue_length = len(queue)
-    padding = len(str(queue_length))
-
-    for idx, track in enumerate(queue, 1):
-        if idx == current:
-            color = ANSI_BOLD
-        else:
-            color = ANSI_RESET
-
-        idx = str(idx).rjust(padding)
-        yield (
-            "%s%s: %s - %s. From album %s.%s" % (
-                color,
-                idx,
-                track.creator,
-                track.title,
-                track.album,
-                ANSI_RESET,
-            )
-        )
 
 
 def err(message):
@@ -222,114 +75,6 @@ def play_index(sonos, index):
         raise ValueError(error)
 
 
-def list_ips():
-    """ List available devices """
-    ip_to_device = {device.ip_address: device for device in soco.discover()}
-    ip_addresses = list(ip_to_device.keys())
-    ip_addresses.sort()
-
-    KNOWN_SPEAKERS.clear()
-    for zone_number, ip_address in enumerate(ip_addresses, 1):
-        # pylint: disable=no-member
-        name = ip_to_device[ip_address].player_name
-        if hasattr(name, 'decode'):
-            name = name.encode('utf-8')
-        KNOWN_SPEAKERS[str(zone_number)] = ip_to_device[ip_address]
-        yield '({}) {: <15} {}'.format(zone_number, ip_address, name)
-
-
-def speaker_info(sonos):
-    """ Information about a speaker """
-    infos = sonos.get_speaker_info()
-    return ('%s: %s' % (i, infos[i]) for i in infos)
-
-
-def volume(sonos, *args):
-    """ Change or show the volume of a device """
-    if not args:
-        return str(sonos.volume)
-
-    operator = args[0]
-    newvolume = mixer.adjust_volume(sonos, operator)
-    return str(newvolume)
-
-
-def bass(sonos, *args):
-    """ Change or show the bass value of a device """
-    if not args:
-        return str(sonos.bass)
-
-    operator = args[0]
-    newbass = mixer.adjust_bass(sonos, operator)
-    return str(newbass)
-
-
-def treble(sonos, *args):
-    """ Change or show the treble value of a device """
-    if not args:
-        return str(sonos.treble)
-
-    operator = args[0]
-    newtreble = mixer.adjust_treble(sonos, operator)
-    return str(newtreble)
-
-
-def exit_shell():
-    """ Exit socos """
-    sys.exit(0)
-
-
-@requires_coordinator
-def play(sonos, *args):
-    """ Start playing """
-    if args:
-        idx = args[0]
-        play_index(sonos, idx)
-    else:
-        sonos.play()
-    return get_current_track_info(sonos)
-
-
-@requires_coordinator
-def pause(sonos):
-    """ Pause """
-    if state(sonos) == 'PLAYING':
-        sonos.pause()
-    return get_current_track_info(sonos)
-
-
-@requires_coordinator
-def stop(sonos):
-    """ Stop """
-    states = ['PLAYING', 'PAUSED_PLAYBACK']
-
-    if state(sonos) in states:
-        sonos.stop()
-    return get_current_track_info(sonos)
-
-
-@requires_coordinator
-def play_mode(sonos, *args):
-    """ Change or show the play mode of a device
-    Accepted modes: NORMAL, SHUFFLE_NOREPEAT, SHUFFLE, REPEAT_ALL """
-    if not args:
-        return sonos.play_mode
-
-    mode = args[0]
-    sonos.play_mode = mode
-
-    return sonos.play_mode
-
-
-def remove_from_queue(sonos, *args):
-    """ Remove track from queue by index """
-    if args:
-        rem_range = parse_range(args[0])
-        remove_range_from_queue(sonos, rem_range)
-
-    return get_queue(sonos)
-
-
 def remove_range_from_queue(sonos, rem_range):
     """ Remove a range of tracks from queue
 
@@ -350,82 +95,10 @@ def remove_index_from_queue(sonos, index):
         raise ValueError(error)
 
 
-@requires_coordinator
-def play_next(sonos):
-    """ Play the next track """
-    try:
-        sonos.next()
-    except SoCoUPnPException:
-        raise SoCoIllegalSeekException('No such track')
-    return get_current_track_info(sonos)
 
 
-@requires_coordinator
-def play_previous(sonos):
-    """ Play the previous track """
-    try:
-        sonos.previous()
-    except SoCoUPnPException:
-        raise SoCoIllegalSeekException('No suck track')
-    return get_current_track_info(sonos)
 
 
-@requires_coordinator
-def state(sonos):
-    """ Get the current state of a device / group """
-    return sonos.get_current_transport_info()['current_transport_state']
-
-
-def set_speaker(arg):
-    """ Set the current speaker for the shell session by ip or speaker number
-
-    Parameters:
-    arg    is either an ip or the number of a speaker as shown by list
-    """
-    # Update the list of known speakers if that has not already been done
-    if not KNOWN_SPEAKERS:
-        list(list_ips())
-
-    # pylint: disable=global-statement,fixme
-    # TODO: this should be refactored into a class with instance-wide state
-    global CUR_SPEAKER
-    # Set speaker by speaker number as identified by list_ips ...
-    if '.' not in arg and arg in KNOWN_SPEAKERS:
-        CUR_SPEAKER = KNOWN_SPEAKERS[arg]
-    # ... and if not that, then by ip
-    else:
-        CUR_SPEAKER = soco.SoCo(arg)
-
-
-def unset_speaker():
-    """ resets the current speaker for the shell session """
-    global CUR_SPEAKER  # pylint: disable=global-statement
-    CUR_SPEAKER = None
-
-
-def get_help(command=None):
-    """ Prints a list of commands with short description """
-
-    def _cmd_summary(item):
-        """ Format command name and first line of docstring """
-        name, func = item[0], item[1][1]
-        if isinstance(func, str):
-            func = getattr(soco.SoCo, func)
-        doc = getattr(func, '__doc__') or ''
-        doc = doc.split('\n')[0].lstrip()
-        return ' * {cmd:12s} {doc}'.format(cmd=name, doc=doc)
-
-    if command and command in COMMANDS:
-        func = COMMANDS[command][1]
-        doc = getattr(func, '__doc__') or ''
-        doc = [line.lstrip() for line in doc.split('\n')]
-        out = '\n'.join(doc)
-    else:
-        texts = ['Available commands:']
-        # pylint: disable=bad-builtin
-        texts += map(_cmd_summary, COMMANDS.items())
-        out = '\n'.join(texts)
-    return out
 
 
 # COMMANDS indexes commands by their name. Each command is a 2-tuple of
@@ -434,54 +107,79 @@ def get_help(command=None):
 # If requires_ip is False, function must be a callable.
 COMMANDS = OrderedDict((
     #  cmd         req IP  func
-    # pylint: disable=bad-whitespace
-    ('list',         (False, list_ips)),
-    ('partymode',    (True, 'partymode')),
-    ('info',         (True, speaker_info)),
-    ('play',         (True, play)),
-    ('pause',        (True, pause)),
-    ('stop',         (True, stop)),
-    ('next',         (True, play_next)),
-    ('previous',     (True, play_previous)),
-    ('mode',         (True, play_mode)),
-    ('current',      (True, get_current_track_info)),
-    ('queue',        (True, get_queue)),
-    ('remove',       (True, remove_from_queue)),
-    ('volume',       (True, volume)),
-    ('bass',         (True, bass)),
-    ('treble',       (True, treble)),
-    ('state',        (True, state)),
-    ('ml_index',     (True, MUSIC_LIB.index)),
-    ('ml_tracks',    (True, MUSIC_LIB.tracks)),
-    ('ml_albums',    (True, MUSIC_LIB.albums)),
-    ('ml_artists',   (True, MUSIC_LIB.artists)),
-    ('ml_playlists', (True, MUSIC_LIB.playlists)),
-    ('ml_sonos_playlists', (True, MUSIC_LIB.sonos_playlists)),
-    ('exit',         (False, exit_shell)),
-    ('set',          (False, set_speaker)),
-    ('unset',        (False, unset_speaker)),
-    ('help',         (False, get_help)),
+#    ('list',         (False, list_ips)),
+#    ('partymode',    (True, 'partymode')),
+#    ('info',         (True, speaker_info)),
+#    ('play',         (True, play)),
+#    ('pause',        (True, pause)),
+#    ('stop',         (True, stop)),
+#    ('next',         (True, play_next)),
+#    ('previous',     (True, play_previous)),
+#    ('mode',         (True, play_mode)),
+#    ('current',      (True, get_current_track_info)),
+#    ('queue',        (True, get_queue)),
+#    ('remove',       (True, remove_from_queue)),
+#    ('volume',       (True, volume)),
+#    ('bass',         (True, bass)),
+#    ('treble',       (True, treble)),
+#    ('state',        (True, state)),
+#    ('ml_index',     (True, MUSIC_LIB.index)),
+#    ('ml_tracks',    (True, MUSIC_LIB.tracks)),
+#    ('ml_albums',    (True, MUSIC_LIB.albums)),
+#    ('ml_artists',   (True, MUSIC_LIB.artists)),
+#    ('ml_playlists', (True, MUSIC_LIB.playlists)),
+#    ('ml_sonos_playlists', (True, MUSIC_LIB.sonos_playlists)),
+#    ('exit',         (False, exit_shell)),
+#    ('set',          (False, set_speaker)),
+#    ('unset',        (False, unset_speaker)),
+#    ('help',         (False, get_help)),
 ))
 
+CommandSpec = namedtuple('CommandSpec',
+                         'requires_ip command_name obj_name method_name')
 
-def add_command(commands, command_name, requires_ip):
+
+def add_command(cmd_list, requires_ip=True, command_name=None, obj_name=None,
+                method_name=None, only_on_coordinator=False):
     """Return a add command decorator"""
-    def decorate(function):
+    def decorate(function, command_name=command_name, obj_name=obj_name,
+                 method_name=method_name):
         """Add a command to commands"""
-        commands[command_name] = (command_name, requires_ip)
+        if only_on_coordinator:
+            function = requires_coordinator(function)
+        if method_name is None:
+            method_name = function.__name__
+        if command_name is None:
+            command_name = function.__name__
+        cmd_list.append(
+            CommandSpec(requires_ip, command_name, obj_name, method_name)
+        )
         return function
     return decorate
 
 
-class SoCos(object):
+class SoCos(object):  # pylint: disable=too-many-public-methods
     """The main SoCos class"""
 
-    commands = OrderedDict()
+    command_list = []
+    add_command = partial(add_command, command_list)
 
     def __init__(self):
-        self.commands['list'] = (False, self.list_ips)
         self.known_speakers = {}
         self.current_speaker = None
+        self.music_lib = MusicLibrary()
+
+        # Form the ordered dict of commands
+        self.commands = OrderedDict()
+        for command_spec in self.command_list:
+            if command_spec.obj_name is None:
+                obj = self
+            else:
+                obj = getattr(self, command_spec.obj_name)
+            self.commands[command_spec.command_name] = (
+                command_spec.requires_ip,
+                getattr(obj, command_spec.method_name)
+            )
 
     def process_cmd(self, args):
         """Process a single command"""
@@ -490,13 +188,13 @@ class SoCos(object):
 
         if cmd not in self.commands:
             err('Unknown command "{cmd}"'.format(cmd=cmd))
-            err(get_help())
+            err(self.get_help())
             return False
 
-        func, args = _check_args(cmd, args)
+        func, args = self._check_args(cmd, args)
 
         try:
-            result = _call_func(func, args)
+            result = func(*args)  #self._call_func(func, args)
         except (KeyError, ValueError, TypeError, SocosException,
                 SoCoIllegalSeekException) as ex:
             err(ex)
@@ -526,6 +224,101 @@ class SoCos(object):
         if colorama:
             colorama.deinit()
 
+    @staticmethod
+    def _call_func(func, args):
+        """Handles str-based functions and calls appropriately"""
+
+        # determine how to call function
+        #if isinstance(func, str):
+        #    sonos = args.pop(0)
+        #    method = getattr(sonos, func)
+        #    return method(*args)  # pylint: disable=star-args
+
+        #else:
+        return func(*args)
+
+
+    def _check_args(self, cmd, args):
+        """Checks if func is called for a speaker and updates 'args'"""
+
+        req_ip, func = self.commands[cmd]
+
+        if not req_ip:
+            return func, args
+
+        if not self.current_speaker:
+            if not args:
+                err('Please specify a speaker IP for "{cmd}".'.format(cmd=cmd))
+                return None, None
+            else:
+                speaker_spec = args.pop(0)
+                sonos = soco.SoCo(speaker_spec)
+                args.insert(0, sonos)
+        else:
+            args.insert(0, self.current_speaker)
+
+        return func, args
+
+
+    def shell(self):
+        """Start an interactive shell"""
+
+        if readline is not None:
+            readline.parse_and_bind('tab: complete')
+            readline.set_completer(self.complete_command)
+            readline.set_completer_delims(' ')
+
+        while True:
+            try:
+                # Not sure why this is necessary, as there is a player_name attr
+                if self.current_speaker:
+                    # pylint: disable=maybe-no-member
+                    speaker = self.current_speaker.player_name
+                    if hasattr(speaker, 'decode'):
+                        speaker = speaker.encode('utf-8')
+                    line = input('socos({speaker}|{state})> '.format(
+                        speaker=speaker,
+                        state=self.state(self.current_speaker).title()
+                        ))
+                else:
+                    line = input('socos> ')
+            except EOFError:
+                print('')
+                break
+            except KeyboardInterrupt:
+                print('')
+                continue
+
+            line = line.strip()
+            if not line:
+                continue
+
+            try:
+                args = shlex.split(line)
+            except ValueError as value_error:
+                err('Syntax error: %(error)s' % {'error': value_error})
+                continue
+
+            try:
+                self.process_cmd(args)
+            except KeyboardInterrupt:
+                err('Keyboard interrupt.')
+            except EOFError:
+                err('EOF.')
+
+    def complete_command(self, text, context):
+        """ auto-complete commands
+
+        Args:
+            text (str): The text to be auto-completed
+            context (int): An index that is increased for every call for
+                "text" to get next match
+        """
+        matches = [cmd for cmd in self.commands.keys() if cmd.startswith(text)]
+        return matches[context]
+
+    ##### Here starts the commands
+    @add_command(requires_ip=False, command_name='list')
     def list_ips(self):
         """List available devices"""
         ip_to_device = {device.ip_address: device for device in soco.discover()}
@@ -540,3 +333,226 @@ class SoCos(object):
                 name = name.encode('utf-8')
             self.known_speakers[str(zone_number)] = ip_to_device[ip_address]
             yield '({}) {: <15} {}'.format(zone_number, ip_address, name)
+
+    @add_command(requires_ip=False)
+    def partymode(self):
+        """Put all the speakers in the same group, a.k.a Party Mode."""
+        self.current_speaker.partymode()
+
+    @staticmethod
+    @add_command(command_name='info')
+    def speaker_info(sonos):
+        """Information about a speaker"""
+        infos = sonos.get_speaker_info()
+        return ('%s: %s' % (i, infos[i]) for i in infos)
+
+    @add_command(only_on_coordinator=True)
+    def play(self, sonos, *args):
+        """Start playing"""
+        if args:
+            idx = args[0]
+            play_index(sonos, idx)
+        else:
+            sonos.play()
+        return self.get_current_track_info(sonos)
+
+    @add_command(only_on_coordinator=True)
+    def pause(self, sonos):
+        """Pause"""
+        if self.state(sonos) == 'PLAYING':
+            sonos.pause()
+        return self.get_current_track_info(sonos)
+
+    @add_command(only_on_coordinator=True)
+    def stop(self, sonos):
+        """Stop"""
+        states = ['PLAYING', 'PAUSED_PLAYBACK']
+
+        if self.state(sonos) in states:
+            sonos.stop()
+        return self.get_current_track_info(sonos)
+
+    @add_command(only_on_coordinator=True)
+    def next(self, sonos):
+        """Play the next track"""
+        try:
+            sonos.next()
+        except SoCoUPnPException:
+            raise SoCoIllegalSeekException('No such track')
+        return self.get_current_track_info(sonos)
+
+    @add_command(only_on_coordinator=True)
+    def previous(self, sonos):
+        """Play the previous track"""
+        try:
+            sonos.previous()
+        except SoCoUPnPException:
+            raise SoCoIllegalSeekException('No suck track')
+        return self.get_current_track_info(sonos)
+
+    @staticmethod
+    @add_command(only_on_coordinator=True)
+    def mode(sonos, *args):
+        """Change or show the play mode of a device
+        Accepted modes: NORMAL, SHUFFLE_NOREPEAT, SHUFFLE, REPEAT_ALL """
+        if not args:
+            return sonos.play_mode
+
+        mode = args[0]
+        sonos.play_mode = mode
+
+        return sonos.play_mode
+
+    @staticmethod
+    @add_command(only_on_coordinator=True, command_name='current')
+    def get_current_track_info(sonos):
+        """ Show the current track """
+        track = sonos.get_current_track_info()
+        return (
+            "Current track: %s - %s. From album %s. This is track number"
+            " %s in the playlist. It is %s minutes long." % (
+                track['artist'],
+                track['title'],
+                track['album'],
+                track['playlist_position'],
+                track['duration'],
+            )
+        )
+
+    @staticmethod
+    @add_command(only_on_coordinator=True, command_name='queue')
+    def get_queue(sonos):
+        """ Show the current queue """
+        queue = sonos.get_queue()
+
+        # pylint: disable=invalid-name
+        ANSI_BOLD = '\033[1m'
+        ANSI_RESET = '\033[0m'
+
+        current = int(sonos.get_current_track_info()['playlist_position'])
+
+        queue_length = len(queue)
+        padding = len(str(queue_length))
+
+        for idx, track in enumerate(queue, 1):
+            if idx == current:
+                color = ANSI_BOLD
+            else:
+                color = ANSI_RESET
+
+            idx = str(idx).rjust(padding)
+            yield (
+                "%s%s: %s - %s. From album %s.%s" % (
+                    color,
+                    idx,
+                    track.creator,
+                    track.title,
+                    track.album,
+                    ANSI_RESET,
+                )
+            )
+
+    # FIXME only_on_coordinator ???
+    @add_command(command_name='remove')
+    def remove_from_queue(self, sonos, *args):
+        """ Remove track from queue by index """
+        if args:
+            rem_range = parse_range(args[0])
+            remove_range_from_queue(sonos, rem_range)
+
+        return self.get_queue(sonos)
+
+    @staticmethod
+    @add_command()
+    def volume(sonos, *args):
+        """ Change or show the volume of a device """
+        if not args:
+            return str(sonos.volume)
+
+        operator = args[0]
+        newvolume = mixer.adjust_volume(sonos, operator)
+        return str(newvolume)
+
+    @staticmethod
+    @add_command()
+    def bass(sonos, *args):
+        """ Change or show the bass value of a device """
+        if not args:
+            return str(sonos.bass)
+
+        operator = args[0]
+        newbass = mixer.adjust_bass(sonos, operator)
+        return str(newbass)
+
+    @staticmethod
+    @add_command()
+    def treble(sonos, *args):
+        """ Change or show the treble value of a device """
+        if not args:
+            return str(sonos.treble)
+
+        operator = args[0]
+        newtreble = mixer.adjust_treble(sonos, operator)
+        return str(newtreble)
+
+    @staticmethod
+    @add_command(only_on_coordinator=True)
+    def state(sonos):
+        """ Get the current state of a device / group """
+        return sonos.get_current_transport_info()['current_transport_state']
+
+    @staticmethod
+    @add_command(requires_ip=False, command_name='exit')
+    def exit_shell():
+        """Exit socos"""
+        sys.exit(0)
+
+    @add_command(requires_ip=False, command_name='set')
+    def set_speaker(self, arg):
+        """Set the current speaker for the shell session by ip or speaker number
+
+        Args:
+            arg (str or int): Is either an ip or the number of a speaker as
+                shown by list
+        """
+        # Update the list of known speakers if that has not already been done
+        if not self.known_speakers:
+            list(self.list_ips())
+
+        # Set speaker by speaker number as identified by list_ips ...
+        if '.' not in arg and arg in self.known_speakers:
+            self.current_speaker = self.known_speakers[arg]
+        # ... and if not that, then by ip
+        else:
+            self.current_speaker = soco.SoCo(arg)
+
+    @add_command(requires_ip=False, command_name='unset')
+    def unset_speaker(self):
+        """Resets the current speaker for the shell session"""
+        self.current_speaker = None
+
+    @add_command(requires_ip=False, command_name='help')
+    def get_help(self, command=None):
+        """Print a list of commands with short description"""
+
+        def _cmd_summary(item):
+            """Format command name and first line of docstring"""
+            name, func = item[0], item[1][1]
+            #if isinstance(func, str):
+            #    func = getattr(soco.SoCo, func)
+            doc = getattr(func, '__doc__') or ''
+            doc = doc.split('\n')[0].lstrip()
+            return ' * {cmd:12s} {doc}'.format(cmd=name, doc=doc)
+
+        if command and command in self.commands:
+            func = self.commands[command][1]
+            doc = getattr(func, '__doc__') or ''
+            doc = [line.lstrip() for line in doc.split('\n')]
+            out = '\n'.join(doc)
+        else:
+            texts = ['Available commands:']
+            # pylint: disable=bad-builtin
+            texts += map(_cmd_summary, self.commands.items())
+            out = '\n'.join(texts)
+        return out
+
