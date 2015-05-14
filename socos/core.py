@@ -1,4 +1,4 @@
-# pylint: disable=star-args,too-many-arguments
+# pylint: disable=star-args,too-many-arguments,duplicate-code
 
 """The core module exposes the two public functions process_cmd and shell.
 It also contains all private functions used by the two."""
@@ -40,117 +40,69 @@ from . import mixer
 
 
 def err(message):
-    """ print an error message """
+    """Print an error message"""
     print(message, file=sys.stderr)
 
 
-@requires_coordinator
-def get_queue_length(sonos):
-    """ Helper function for queue related functions """
-    return len(sonos.get_queue())
-
-
 def is_index_in_queue(index, queue_length):
-    """ Helper function to verify if index exists """
+    """Helper function to verify if index exists"""
     if index > 0 and index <= queue_length:
         return True
     return False
 
 
-@requires_coordinator
-def play_index(sonos, index):
-    """ Play an item from the playlist """
-    index = int(index)
-    queue_length = get_queue_length(sonos)
-
-    if is_index_in_queue(index, queue_length):
-        # Translate from socos one-based to SoCo zero-based
-        index -= 1
-        position = sonos.get_current_track_info()['playlist_position']
-        current = int(position) - 1
-        if index != current:
-            return sonos.play_from_queue(index)
-    else:
-        error = "Index %d is not within range 1 - %d" % (index, queue_length)
-        raise ValueError(error)
-
-
-def remove_range_from_queue(sonos, rem_range):
-    """ Remove a range of tracks from queue
-
-    rem_range should be a sequence, such as a range object """
-    for index in sorted(rem_range, reverse=True):
-        remove_index_from_queue(sonos, index)
-
-
-@requires_coordinator
-def remove_index_from_queue(sonos, index):
-    """ Remove one track from the queue by its index """
-    queue_length = get_queue_length(sonos)
-    if is_index_in_queue(index, queue_length):
-        index -= 1
-        sonos.remove_from_queue(index)
-    else:
-        error = "Index %d is not within range 1 - %d" % (index, queue_length)
-        raise ValueError(error)
-
-
-
-
-
-
-
-
-# COMMANDS indexes commands by their name. Each command is a 2-tuple of
-# (requires_ip, function) where function is either a callable, or a
-# method name to be called on a SoCo instance (depending on requires_ip)
-# If requires_ip is False, function must be a callable.
-COMMANDS = OrderedDict((
-    #  cmd         req IP  func
-#    ('list',         (False, list_ips)),
-#    ('partymode',    (True, 'partymode')),
-#    ('info',         (True, speaker_info)),
-#    ('play',         (True, play)),
-#    ('pause',        (True, pause)),
-#    ('stop',         (True, stop)),
-#    ('next',         (True, play_next)),
-#    ('previous',     (True, play_previous)),
-#    ('mode',         (True, play_mode)),
-#    ('current',      (True, get_current_track_info)),
-#    ('queue',        (True, get_queue)),
-#    ('remove',       (True, remove_from_queue)),
-#    ('volume',       (True, volume)),
-#    ('bass',         (True, bass)),
-#    ('treble',       (True, treble)),
-#    ('state',        (True, state)),
-#    ('ml_index',     (True, MUSIC_LIB.index)),
-#    ('ml_tracks',    (True, MUSIC_LIB.tracks)),
-#    ('ml_albums',    (True, MUSIC_LIB.albums)),
-#    ('ml_artists',   (True, MUSIC_LIB.artists)),
-#    ('ml_playlists', (True, MUSIC_LIB.playlists)),
-#    ('ml_sonos_playlists', (True, MUSIC_LIB.sonos_playlists)),
-#    ('exit',         (False, exit_shell)),
-#    ('set',          (False, set_speaker)),
-#    ('unset',        (False, unset_speaker)),
-#    ('help',         (False, get_help)),
-))
-
-CommandSpec = namedtuple('CommandSpec',
-                         'requires_ip command_name obj_name method_name')
+# The CommandSpec named tuple is used to specify a command.
+# Args:
+#     requires_ip (bool): Whether the command requires an IP-address
+#     command_name (str): The name of the command
+#     obj_name (str): The name of the object in the SoCos instance that holds
+#         the method that should be executed by this command (None means the
+#          SoCos instance itself
+#     method_name (str): The name of the method (on obj_name) that should be
+#         executed by this command
+CommandSpec = namedtuple(
+    'CommandSpec', 'requires_ip command_name obj_name method_name')
 
 
 def add_command(cmd_list, requires_ip=True, command_name=None, obj_name=None,
                 method_name=None, only_on_coordinator=False):
-    """Return a add command decorator"""
+    """Return a add command decorator
+
+    This decorator with arguments is used to indicate that a method should add
+    a command.
+
+    Args:
+        cmd_list (list): List to add commands to, in the form of a CommandSpec
+        requires_ip (bool): Indicates if the command needs an IP-address
+        command_name (str): The name of the command, if left out will default
+            to the method name
+        obj_name (str): The name of the object the method should be fetched
+            from, if left out assume it is the SoCos instance
+        method_name (str): The name of the method (on obj_name) that should be
+            called on command
+        only_on_coordinator (bool): Whether the command should only be run on
+            a coordinator
+
+    NOTE: The reason for using object and method names instead of simply saving
+    the method, is that at decorator time, the method has not been bound yet,
+    so it is only a normal function. This would give problems when trying to
+    call it. So instead note down the object and method names and form the
+    list with the actual methods when the instance is fully created.
+    """
     def decorate(function, command_name=command_name, obj_name=obj_name,
                  method_name=method_name):
         """Add a command to commands"""
+        # Apply requires_coordinator decorator if required
         if only_on_coordinator:
             function = requires_coordinator(function)
+
+        # Get default values
         if method_name is None:
             method_name = function.__name__
         if command_name is None:
             command_name = function.__name__
+
+        # Append the command spec
         cmd_list.append(
             CommandSpec(requires_ip, command_name, obj_name, method_name)
         )
@@ -161,6 +113,8 @@ def add_command(cmd_list, requires_ip=True, command_name=None, obj_name=None,
 class SoCos(object):  # pylint: disable=too-many-public-methods
     """The main SoCos class"""
 
+    # The list of command (specs) will be filled out during class parsing by
+    # means of decorators
     command_list = []
     add_command = partial(add_command, command_list)
 
@@ -192,9 +146,12 @@ class SoCos(object):  # pylint: disable=too-many-public-methods
             return False
 
         func, args = self._check_args(cmd, args)
+        # None, None is returned with missing IP, in this case return
+        if (func, args) == (None, None):
+            return
 
         try:
-            result = func(*args)  #self._call_func(func, args)
+            result = func(*args)
         except (KeyError, ValueError, TypeError, SocosException,
                 SoCoIllegalSeekException) as ex:
             err(ex)
@@ -207,7 +164,6 @@ class SoCos(object):  # pylint: disable=too-many-public-methods
         # process output
         if result is None:
             pass
-
         elif not isinstance(result, str):
             try:
                 for line in result:
@@ -216,27 +172,12 @@ class SoCos(object):  # pylint: disable=too-many-public-methods
                     SoCoIllegalSeekException) as ex:
                 err(ex)
                 return
-
         else:
             print(result)
 
         # Release stdout/stderr from colorama
         if colorama:
             colorama.deinit()
-
-    @staticmethod
-    def _call_func(func, args):
-        """Handles str-based functions and calls appropriately"""
-
-        # determine how to call function
-        #if isinstance(func, str):
-        #    sonos = args.pop(0)
-        #    method = getattr(sonos, func)
-        #    return method(*args)  # pylint: disable=star-args
-
-        #else:
-        return func(*args)
-
 
     def _check_args(self, cmd, args):
         """Checks if func is called for a speaker and updates 'args'"""
@@ -317,6 +258,50 @@ class SoCos(object):  # pylint: disable=too-many-public-methods
         matches = [cmd for cmd in self.commands.keys() if cmd.startswith(text)]
         return matches[context]
 
+    ##### Helper methods
+    @staticmethod
+    @requires_coordinator
+    def get_queue_length(sonos):
+        """Return the queue length"""
+        return len(sonos.get_queue())
+
+    @requires_coordinator
+    def play_index(self, sonos, index):
+        """ Play an item from the playlist """
+        index = int(index)
+        queue_length = self.get_queue_length(sonos)
+
+        if is_index_in_queue(index, queue_length):
+            # Translate from socos one-based to SoCo zero-based
+            index -= 1
+            position = sonos.get_current_track_info()['playlist_position']
+            current = int(position) - 1
+            if index != current:
+                return sonos.play_from_queue(index)
+        else:
+            error = "Index %d is not within range 1 - %d" %\
+              (index, queue_length)
+            raise ValueError(error)
+
+    def remove_range_from_queue(self, sonos, rem_range):
+        """ Remove a range of tracks from queue
+
+        rem_range should be a sequence, such as a range object """
+        for index in sorted(rem_range, reverse=True):
+            self.remove_index_from_queue(sonos, index)
+
+    @requires_coordinator
+    def remove_index_from_queue(self, sonos, index):
+        """ Remove one track from the queue by its index """
+        queue_length = self.get_queue_length(sonos)
+        if is_index_in_queue(index, queue_length):
+            index -= 1
+            sonos.remove_from_queue(index)
+        else:
+            error = "Index %d is not within range 1 - %d" %\
+              (index, queue_length)
+            raise ValueError(error)
+
     ##### Here starts the commands
     @add_command(requires_ip=False, command_name='list')
     def list_ips(self):
@@ -351,7 +336,7 @@ class SoCos(object):  # pylint: disable=too-many-public-methods
         """Start playing"""
         if args:
             idx = args[0]
-            play_index(sonos, idx)
+            self.play_index(sonos, idx)
         else:
             sonos.play()
         return self.get_current_track_info(sonos)
@@ -452,13 +437,12 @@ class SoCos(object):  # pylint: disable=too-many-public-methods
                 )
             )
 
-    # FIXME only_on_coordinator ???
     @add_command(command_name='remove')
     def remove_from_queue(self, sonos, *args):
         """ Remove track from queue by index """
         if args:
             rem_range = parse_range(args[0])
-            remove_range_from_queue(sonos, rem_range)
+            self.remove_range_from_queue(sonos, rem_range)
 
         return self.get_queue(sonos)
 
@@ -500,6 +484,14 @@ class SoCos(object):  # pylint: disable=too-many-public-methods
     def state(sonos):
         """ Get the current state of a device / group """
         return sonos.get_current_transport_info()['current_transport_state']
+
+    # Add music service commands
+    for method_name in ['index', 'tracks', 'albums', 'artists', 'playlists',
+                         'sonos_playlists']:
+        command_list.append(
+            CommandSpec(requires_ip=True, command_name='ml_' + method_name,
+                        obj_name='music_lib', method_name=method_name)
+        )
 
     @staticmethod
     @add_command(requires_ip=False, command_name='exit')
@@ -555,4 +547,3 @@ class SoCos(object):  # pylint: disable=too-many-public-methods
             texts += map(_cmd_summary, self.commands.items())
             out = '\n'.join(texts)
         return out
-
