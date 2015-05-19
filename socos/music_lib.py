@@ -348,5 +348,4 @@ class MusicLibrary(object):
                 if hasattr(value, 'decode'):
                     item_dict[key] = value.encode('utf-8')
             number = '({{: >{}}}) '.format(index_length).format(index + 1)
-            # pylint: disable=star-args
             yield number + print_patterns[data_type].format(**item_dict)

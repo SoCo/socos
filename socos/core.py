@@ -1,4 +1,4 @@
-# pylint: disable=star-args,too-many-arguments,duplicate-code
+# pylint: disable=too-many-arguments,duplicate-code
 
 """The core module exposes the two public functions process_cmd and shell.
 It also contains all private functions used by the two."""
@@ -157,7 +157,8 @@ class SoCos(object):  # pylint: disable=too-many-public-methods
             err(ex)
             return
 
-        # colorama.init() takes over stdout/stderr to give cross-platform colors
+        # colorama.init() takes over stdout/stderr to give cross-platform
+        # colors
         if colorama:
             colorama.init()
 
@@ -200,7 +201,6 @@ class SoCos(object):  # pylint: disable=too-many-public-methods
 
         return func, args
 
-
     def shell(self):
         """Start an interactive shell"""
 
@@ -211,7 +211,8 @@ class SoCos(object):  # pylint: disable=too-many-public-methods
 
         while True:
             try:
-                # Not sure why this is necessary, as there is a player_name attr
+                # Not sure why this is necessary, as there is a player_name
+                # attr
                 if self.current_speaker:
                     # pylint: disable=maybe-no-member
                     speaker = self.current_speaker.player_name
@@ -258,7 +259,7 @@ class SoCos(object):  # pylint: disable=too-many-public-methods
         matches = [cmd for cmd in self.commands.keys() if cmd.startswith(text)]
         return matches[context]
 
-    ##### Helper methods
+    # ### Helper methods
     @staticmethod
     @requires_coordinator
     def get_queue_length(sonos):
@@ -279,8 +280,8 @@ class SoCos(object):  # pylint: disable=too-many-public-methods
             if index != current:
                 return sonos.play_from_queue(index)
         else:
-            error = "Index %d is not within range 1 - %d" %\
-              (index, queue_length)
+            error = "Index %d is not within range 1 - %d" % \
+                    (index, queue_length)
             raise ValueError(error)
 
     def remove_range_from_queue(self, sonos, rem_range):
@@ -298,15 +299,16 @@ class SoCos(object):  # pylint: disable=too-many-public-methods
             index -= 1
             sonos.remove_from_queue(index)
         else:
-            error = "Index %d is not within range 1 - %d" %\
-              (index, queue_length)
+            error = "Index %d is not within range 1 - %d" % \
+                    (index, queue_length)
             raise ValueError(error)
 
-    ##### Here starts the commands
+    # ### Here starts the commands
     @add_command(requires_ip=False, command_name='list')
     def list_ips(self):
         """List available devices"""
-        ip_to_device = {device.ip_address: device for device in soco.discover()}
+        ip_to_device = {device.ip_address: device
+                        for device in soco.discover()}
         ip_addresses = list(ip_to_device.keys())
         ip_addresses.sort()
 
@@ -487,7 +489,7 @@ class SoCos(object):  # pylint: disable=too-many-public-methods
 
     # Add music service commands
     for method_name in ['index', 'tracks', 'albums', 'artists', 'playlists',
-                         'sonos_playlists']:
+                        'sonos_playlists']:
         command_list.append(
             CommandSpec(requires_ip=True, command_name='ml_' + method_name,
                         obj_name='music_lib', method_name=method_name)
@@ -501,7 +503,8 @@ class SoCos(object):  # pylint: disable=too-many-public-methods
 
     @add_command(requires_ip=False, command_name='set')
     def set_speaker(self, arg):
-        """Set the current speaker for the shell session by ip or speaker number
+        """Set the current speaker for the shell session by ip or speaker
+        number
 
         Args:
             arg (str or int): Is either an ip or the number of a speaker as
@@ -530,8 +533,6 @@ class SoCos(object):  # pylint: disable=too-many-public-methods
         def _cmd_summary(item):
             """Format command name and first line of docstring"""
             name, func = item[0], item[1][1]
-            #if isinstance(func, str):
-            #    func = getattr(soco.SoCo, func)
             doc = getattr(func, '__doc__') or ''
             doc = doc.split('\n')[0].lstrip()
             return ' * {cmd:12s} {doc}'.format(cmd=name, doc=doc)
