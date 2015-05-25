@@ -1,4 +1,4 @@
-# pylint: disable=too-many-arguments,duplicate-code
+# pylint: disable=too-many-arguments,duplicate-code,star-args
 
 """The core module exposes the two public functions process_cmd and shell.
 It also contains all private functions used by the two."""

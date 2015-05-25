@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# pylint: disable=star-args
 
 """ The music library support for socos """
 
