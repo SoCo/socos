@@ -2,6 +2,7 @@
 
 import re
 from functools import wraps
+from soco import SoCo
 
 # matches single numbers ("123") or ranges ("12..34")
 RANGE_PATTERN = re.compile(r'(\d+)(..(\d+))?')
@@ -50,11 +51,10 @@ def requires_coordinator(func):
         into sonos.group.coordinator
         before returning the decorated function.
         """
-
-        sonos = args[0]
-
         args = list(args)
-        args[0] = sonos.group.coordinator
-
+        if isinstance(args[0], SoCo):  # Static method
+            args[0] = args[0].group.coordinator
+        else:  # Ordinary method
+            args[1] = args[1].group.coordinator
         return func(*args, **kwargs)
     return decorated
