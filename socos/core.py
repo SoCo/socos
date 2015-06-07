@@ -1,4 +1,4 @@
-# pylint: disable=too-many-arguments,duplicate-code,star-args
+# pylint: disable=too-many-arguments,duplicate-code
 
 """The core module exposes the two public functions process_cmd and shell.
 It also contains all private functions used by the two."""
@@ -11,17 +11,26 @@ from functools import partial
 from collections import OrderedDict, namedtuple
 
 try:
+    import readline
+except ImportError:
+    # pylint: disable=invalid-name
+    readline = None
+
+try:
     # pylint: disable=import-error
     import colorama
 except ImportError:
     # pylint: disable=invalid-name
     colorama = None
 
-try:
-    import readline
-except ImportError:
-    # pylint: disable=invalid-name
-    readline = None
+import soco
+from soco.exceptions import SoCoUPnPException
+
+from socos.exceptions import SoCoIllegalSeekException, SocosException
+from socos.utils import parse_range, requires_coordinator
+from socos.music_lib import MusicLibrary
+
+from . import mixer
 
 try:
     # pylint: disable=redefined-builtin,invalid-name,undefined-variable
@@ -29,14 +38,6 @@ try:
 except NameError:
     # raw_input has been renamed to input in Python 3
     pass
-
-import soco
-from soco.exceptions import SoCoUPnPException
-
-from .exceptions import SoCoIllegalSeekException, SocosException
-from .music_lib import MusicLibrary
-from .utils import parse_range, requires_coordinator
-from . import mixer
 
 
 def err(message):
@@ -249,7 +250,7 @@ class SoCos(object):  # pylint: disable=too-many-public-methods
                 err('EOF.')
 
     def complete_command(self, text, context):
-        """ auto-complete commands
+        """auto-complete commands
 
         Args:
             text (str): The text to be auto-completed
@@ -268,7 +269,7 @@ class SoCos(object):  # pylint: disable=too-many-public-methods
 
     @requires_coordinator
     def play_index(self, sonos, index):
-        """ Play an item from the playlist """
+        """Play an item from the playlist"""
         index = int(index)
         queue_length = self.get_queue_length(sonos)
 
@@ -285,15 +286,15 @@ class SoCos(object):  # pylint: disable=too-many-public-methods
             raise ValueError(error)
 
     def remove_range_from_queue(self, sonos, rem_range):
-        """ Remove a range of tracks from queue
+        """Remove a range of tracks from queue
 
-        rem_range should be a sequence, such as a range object """
+        rem_range should be a sequence, such as a range object"""
         for index in sorted(rem_range, reverse=True):
             self.remove_index_from_queue(sonos, index)
 
     @requires_coordinator
     def remove_index_from_queue(self, sonos, index):
-        """ Remove one track from the queue by its index """
+        """Remove one track from the queue by its index"""
         queue_length = self.get_queue_length(sonos)
         if is_index_in_queue(index, queue_length):
             index -= 1
@@ -381,7 +382,7 @@ class SoCos(object):  # pylint: disable=too-many-public-methods
     @add_command(only_on_coordinator=True)
     def mode(sonos, *args):
         """Change or show the play mode of a device
-        Accepted modes: NORMAL, SHUFFLE_NOREPEAT, SHUFFLE, REPEAT_ALL """
+        Accepted modes: NORMAL, SHUFFLE_NOREPEAT, SHUFFLE, REPEAT_ALL"""
         if not args:
             return sonos.play_mode
 
@@ -393,7 +394,7 @@ class SoCos(object):  # pylint: disable=too-many-public-methods
     @staticmethod
     @add_command(only_on_coordinator=True, command_name='current')
     def get_current_track_info(sonos):
-        """ Show the current track """
+        """Show the current track"""
         track = sonos.get_current_track_info()
         return (
             "Current track: %s - %s. From album %s. This is track number"
@@ -409,7 +410,7 @@ class SoCos(object):  # pylint: disable=too-many-public-methods
     @staticmethod
     @add_command(only_on_coordinator=True, command_name='queue')
     def get_queue(sonos):
-        """ Show the current queue """
+        """Show the current queue"""
         queue = sonos.get_queue()
 
         # pylint: disable=invalid-name
@@ -441,7 +442,7 @@ class SoCos(object):  # pylint: disable=too-many-public-methods
 
     @add_command(command_name='remove')
     def remove_from_queue(self, sonos, *args):
-        """ Remove track from queue by index """
+        """Remove track from queue by index"""
         if args:
             rem_range = parse_range(args[0])
             self.remove_range_from_queue(sonos, rem_range)
@@ -451,7 +452,7 @@ class SoCos(object):  # pylint: disable=too-many-public-methods
     @staticmethod
     @add_command()
     def volume(sonos, *args):
-        """ Change or show the volume of a device """
+        """Change or show the volume of a device"""
         if not args:
             return str(sonos.volume)
 
@@ -462,7 +463,7 @@ class SoCos(object):  # pylint: disable=too-many-public-methods
     @staticmethod
     @add_command()
     def bass(sonos, *args):
-        """ Change or show the bass value of a device """
+        """Change or show the bass value of a device"""
         if not args:
             return str(sonos.bass)
 
@@ -473,7 +474,7 @@ class SoCos(object):  # pylint: disable=too-many-public-methods
     @staticmethod
     @add_command()
     def treble(sonos, *args):
-        """ Change or show the treble value of a device """
+        """Change or show the treble value of a device"""
         if not args:
             return str(sonos.treble)
 
@@ -484,14 +485,14 @@ class SoCos(object):  # pylint: disable=too-many-public-methods
     @staticmethod
     @add_command(only_on_coordinator=True)
     def state(sonos):
-        """ Get the current state of a device / group """
+        """Get the current state of a device / group"""
         return sonos.get_current_transport_info()['current_transport_state']
 
-    # Add music service commands
-    for method_name in ['index', 'tracks', 'albums', 'artists', 'playlists',
+    # Add music library commands
+    for method_name in ['tracks', 'albums', 'artists', 'playlists',
                         'sonos_playlists']:
         command_list.append(
-            CommandSpec(requires_ip=True, command_name='ml_' + method_name,
+            CommandSpec(requires_ip=True, command_name=method_name,
                         obj_name='music_lib', method_name=method_name)
         )
 

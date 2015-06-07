@@ -1,8 +1,8 @@
-""" The mixer modules functionality for adjusting volume, bass, treble. """
+"""The mixer modules functionality for adjusting volume, bass, treble."""
 
 
 def _adjust_setting(soco, attr, operator, min_val, max_val):
-    """ Adjust setting "attr" by "operator" """
+    """Adjust setting "attr" by "operator"""
 
     factor = get_factor(operator)
     val = getattr(soco, attr)
@@ -13,22 +13,22 @@ def _adjust_setting(soco, attr, operator, min_val, max_val):
 
 
 def adjust_volume(soco, operator):
-    """ Adjust the volume up or down with a factor from 1 to 100 """
+    """Adjust the volume up or down with a factor from 1 to 100"""
     return _adjust_setting(soco, 'volume', operator, 0, 100)
 
 
 def adjust_bass(soco, operator):
-    """ Adjust the bass up or down with a factor from -10 to 10 """
+    """Adjust the bass up or down with a factor from -10 to 10"""
     return _adjust_setting(soco, 'bass', operator, -10, 10)
 
 
 def adjust_treble(soco, operator):
-    """ Adjust the treble up or down with a factor from -10 to 10 """
+    """Adjust the treble up or down with a factor from -10 to 10"""
     return _adjust_setting(soco, 'treble', operator, -10, 10)
 
 
 def get_factor(operator):
-    """ get the factor to adjust the volume, bass, treble... with
+    """get the factor to adjust the volume, bass, treble... with
 
     Returns the parsed number, but accounts for operator-only input.
 
@@ -57,7 +57,7 @@ def get_factor(operator):
 
 
 def in_range(val, min_val, max_val):
-    """ Make sure val is within min_val, max_val
+    """Make sure val is within min_val, max_val
 
     >>> in_range(5, 0, 10)
     5

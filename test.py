@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-""" Run socos tests """
+"""Run socos tests"""
 
 from __future__ import print_function
 
@@ -17,7 +17,7 @@ PACKAGE = 'socos'
 
 
 def doctest_package(package):
-    """ run doctests for the given package """
+    """run doctests for the given package"""
     failed = 0
 
     # pylint: disable=unused-variable

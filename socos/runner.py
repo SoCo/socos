@@ -1,17 +1,18 @@
 #!/usr/bin/env python
-""" socos is a commandline tool for controlling Sonos speakers """
+"""socos is a commandline tool for controlling Sonos speakers"""
 
-# when running from source, prefer source to installed version
 import sys
 import os.path
-BASEDIR = os.path.abspath(os.path.dirname(__file__))
-sys.path.insert(0, os.path.join(BASEDIR, '..'))
 
 from socos import SoCos
 
+# when running from source, prefer source to installed version
+BASEDIR = os.path.abspath(os.path.dirname(__file__))
+sys.path.insert(0, os.path.join(BASEDIR, '..'))
+
 
 def main():
-    """ main switches between (non-)interactive mode """
+    """main switches between (non-)interactive mode"""
     socos = SoCos()
     args = sys.argv[1:]
 

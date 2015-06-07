@@ -1,4 +1,4 @@
-""" various utility functions """
+"""various utility functions"""
 
 import re
 from functools import wraps
@@ -9,7 +9,7 @@ RANGE_PATTERN = re.compile(r'(\d+)(..(\d+))?')
 
 
 def parse_range(txt):
-    """ Matches a single number A or a range of two numbers A..B
+    """Matches a single number A or a range of two numbers A..B
 
     The range A..B is interpreted as including both A and B
 
