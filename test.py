@@ -34,5 +34,6 @@ def doctest_package(package):
 
     return failed
 
+
 # return number of failed tests, ie error if at least one test failed
 sys.exit(doctest_package(PACKAGE))
