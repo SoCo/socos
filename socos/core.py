@@ -375,7 +375,7 @@ class SoCos(object):  # pylint: disable=too-many-public-methods
         try:
             sonos.previous()
         except SoCoUPnPException:
-            raise SoCoIllegalSeekException('No suck track')
+            raise SoCoIllegalSeekException('No such track')
         return self.get_current_track_info(sonos)
 
     @staticmethod
