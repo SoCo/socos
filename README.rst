@@ -29,7 +29,7 @@ Usage example
 
 A typical session (instead of `tracks enough add 1` you could also do `tracks enough replace 1` to replace the queue instead of adding to the end.
 
-.. code
+.. code-block::
 
   socos> list
   (1) 192.168.1.101 Living room
