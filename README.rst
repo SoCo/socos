@@ -15,11 +15,11 @@ Build
    :target: https://requires.io/github/SoCo/socos/requirements/?branch=master
    :alt: Requirements Status
 
-.. image:: https://pypip.in/download/socos/badge.png
+.. image:: https://img.shields.io/pypi/dm/socos.svg
    :target: https://pypi.python.org/pypi/socos/
    :alt: Latest PyPI version
 
-.. image:: https://pypip.in/version/socos/badge.png
+.. image:: https://img.shields.io/pypi/v/socos.svg
    :target: https://pypi.python.org/pypi/socos/
    :alt: Number of PyPI downloads
 
