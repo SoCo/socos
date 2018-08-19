@@ -1,11 +1,14 @@
 #!/usr/bin/env Python
 
+# pylint: disable=bad-option-value
+
 """The music library support for socos"""
 
 from __future__ import print_function
 
 
-class MusicLibrary(object):
+class MusicLibrary(object):  # pylint: disable=useless-object-inheritance
+
     """Class that implements music library support for socos"""
 
     def tracks(self, sonos, *args):
@@ -81,7 +84,7 @@ class MusicLibrary(object):
         Similar to 'add', but this replaces the existing queue with
         the returned music information object.
         """
-        if len(args) < 1:
+        if not args:
             items = sonos.music_library.get_music_library_information(
                 search_type=data_type)
         else:
@@ -113,7 +116,8 @@ class MusicLibrary(object):
         Will replace the current queue with the item by index 4 from
         collection `items`.
         """
-        action, number = args[1:]
+
+        action, number = args[1:]  # pylint: disable=unbalanced-tuple-unpacking
 
         if action not in ['add', 'replace']:
             message = "'Action must be one of 'add' or 'replace'"
@@ -124,7 +128,7 @@ class MusicLibrary(object):
         except ValueError:
             raise ValueError('Play number must be parseable as integer')
         if number not in range(len(results)):
-            if len(results) == 0:
+            if not results:
                 message = 'No results to play from'
             elif len(results) == 1:
                 message = 'Play number can only be 1'

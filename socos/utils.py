@@ -36,7 +36,7 @@ def parse_range(txt):
         # no second number, so we need a range of length 1
         val2 = val1
 
-    return range(val1, val2+1)
+    return range(val1, val2 + 1)
 
 
 def requires_coordinator(func):
