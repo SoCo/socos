@@ -222,7 +222,7 @@ class SoCos(object):  # pylint: disable=too-many-public-methods
                     line = input('socos({speaker}|{state})> '.format(
                         speaker=speaker,
                         state=self.state(self.current_speaker).title()
-                        ))
+                    ))
                 else:
                     line = input('socos> ')
             except EOFError:
