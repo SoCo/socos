@@ -492,6 +492,18 @@ class SoCos(object):
         """Get the current state of a device / group"""
         return sonos.get_current_transport_info()['current_transport_state']
 
+    @staticmethod
+    @add_command()
+    def player_name(sonos, *args):
+        """Set or get the player name of a device"""
+        if not args:
+            return sonos.player_name
+
+        name = args[0]
+        sonos.player_name = name
+
+        return sonos.player_name
+
     # Add music library commands
     for method_name in ['tracks', 'albums', 'artists', 'playlists',
                         'sonos_playlists']:
