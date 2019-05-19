@@ -1,4 +1,4 @@
-# pylint: disable=too-many-arguments,duplicate-code
+# pylint: disable=too-many-arguments,duplicate-code,bad-option-value
 
 """The core module exposes the two public functions process_cmd and shell.
 It also contains all private functions used by the two."""
@@ -47,7 +47,7 @@ def err(message):
 
 def is_index_in_queue(index, queue_length):
     """Helper function to verify if index exists"""
-    if index > 0 and index <= queue_length:
+    if 0 < index <= queue_length:
         return True
     return False
 
@@ -111,7 +111,8 @@ def add_command(cmd_list, requires_ip=True, command_name=None, obj_name=None,
     return decorate
 
 
-class SoCos(object):  # pylint: disable=too-many-public-methods
+# pylint: disable=too-many-public-methods,useless-object-inheritance
+class SoCos(object):
     """The main SoCos class"""
 
     # The list of command (specs) will be filled out during class parsing by
@@ -149,14 +150,14 @@ class SoCos(object):  # pylint: disable=too-many-public-methods
         func, args = self._check_args(cmd, args)
         # None, None is returned with missing IP, in this case return
         if (func, args) == (None, None):
-            return
+            return None
 
         try:
             result = func(*args)
         except (KeyError, ValueError, TypeError, SocosException,
                 SoCoIllegalSeekException) as ex:
             err(ex)
-            return
+            return None
 
         # colorama.init() takes over stdout/stderr to give cross-platform
         # colors
@@ -173,13 +174,15 @@ class SoCos(object):  # pylint: disable=too-many-public-methods
             except (KeyError, ValueError, TypeError, SocosException,
                     SoCoIllegalSeekException) as ex:
                 err(ex)
-                return
+                return None
         else:
             print(result)
 
         # Release stdout/stderr from colorama
         if colorama:
             colorama.deinit()
+
+        return None
 
     def _check_args(self, cmd, args):
         """Checks if func is called for a speaker and updates 'args'"""
@@ -193,10 +196,11 @@ class SoCos(object):  # pylint: disable=too-many-public-methods
             if not args:
                 err('Please specify a speaker IP for "{cmd}".'.format(cmd=cmd))
                 return None, None
-            else:
-                speaker_spec = args.pop(0)
-                sonos = soco.SoCo(speaker_spec)
-                args.insert(0, sonos)
+
+            speaker_spec = args.pop(0)
+            sonos = soco.SoCo(speaker_spec)
+            args.insert(0, sonos)
+
         else:
             args.insert(0, self.current_speaker)
 
@@ -280,10 +284,10 @@ class SoCos(object):  # pylint: disable=too-many-public-methods
             current = int(position) - 1
             if index != current:
                 return sonos.play_from_queue(index)
-        else:
-            error = "Index %d is not within range 1 - %d" % \
-                    (index, queue_length)
-            raise ValueError(error)
+
+        error = "Index %d is not within range 1 - %d" % \
+                (index, queue_length)
+        raise ValueError(error)
 
     def remove_range_from_queue(self, sonos, rem_range):
         """Remove a range of tracks from queue
@@ -545,7 +549,6 @@ class SoCos(object):  # pylint: disable=too-many-public-methods
             out = '\n'.join(doc)
         else:
             texts = ['Available commands:']
-            # pylint: disable=bad-builtin
             texts += map(_cmd_summary, self.commands.items())
             out = '\n'.join(texts)
         return out
